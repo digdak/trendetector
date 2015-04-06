@@ -1,0 +1,18 @@
+# webstorm idea configure
+.idea/
+
+# mongodb data storage
+data/
+
+# npm dependencies
+node_modules/
+
+# uploaded image files
+public/images/
+
+# log files
+*.log
+
+# eclipse configure
+.classpath
+.project

@@ -1,0 +1,26 @@
+extends layout
+
+block content
+
+    // Wrapper
+    #wrapper
+        h1 Trendetector
+
+        // ARTICLE LIST
+        h2 Article List
+        #articleList
+            table
+                thead
+                    th 커뮤니티
+                    th 제목
+                    th 작성자
+                    th 작성일
+                    th 조회수
+                tbody
+        // /ARTICLE LIST
+
+        // PAGING
+        a(href='/list?page=#{Number(page) + 1}') 다음
+        // /PAGING
+
+    // /WRAPPER

@@ -1,0 +1,18 @@
+doctype html
+html
+    head
+        title= title
+        link(rel='stylesheet', href='/stylesheets/style.css')
+    body
+        block content
+        script(src='http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js')
+        script var page = #{page};
+        if board_id
+            script var board_id = #{board_id};
+        else
+            script var board_id = undefined;
+        if article_no
+            script var article_no = #{article_no};
+        else
+            script var article_no = undefined;
+        script(src='/javascripts/global.js')
