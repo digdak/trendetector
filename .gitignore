@@ -13,6 +13,9 @@ public/images/
 # log files
 *.log
 
+# java class files
+classes/
+
 # eclipse configure
 .classpath
 .project
