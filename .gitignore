@@ -17,5 +17,5 @@ public/images/
 classes/
 
 # eclipse configure
-.classpath
-.project
+# .classpath
+# .project
