@@ -27,8 +27,8 @@ public class FileURL {
 		File file = new File(path);
 		file.getParentFile().mkdirs();
 		
-		// TODO file path¿¡ ¹®Á¦°¡ ¾øµµ·Ï Á¤±ÔÈ­½ÃÄÑ¾ß ÇÔ.
-		// TODO ¶Ç, Áßº¹µÇ´Â ÀÌ¸§ÀÇ ÆÄÀÏÀÌ ÀÖÀ» °æ¿ì Ã³¸®¸¦ ³Ö¾îÁà¾ß ÇÔ.
+		// TODO file pathì— ë¬¸ì œê°€ ì—†ë„ë¡ ì •ê·œí™”ì‹œì¼œì•¼ í•¨.
+		// TODO ë˜, ì¤‘ë³µë˜ëŠ” ì´ë¦„ì˜ íŒŒì¼ì´ ìˆì„ ê²½ìš° ì²˜ë¦¬ë¥¼ ë„£ì–´ì¤˜ì•¼ í•¨.
 		OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
 		InputStream is = res.getEntity().getContent();
 		
