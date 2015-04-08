@@ -26,6 +26,9 @@ public class FileURL {
 		
 		File file = new File(path);
 		file.getParentFile().mkdirs();
+		
+		// TODO file path에 문제가 없도록 정규화시켜야 함.
+		// TODO 또, 중복되는 이름의 파일이 있을 경우 처리를 넣어줘야 함.
 		OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
 		InputStream is = res.getEntity().getContent();
 		

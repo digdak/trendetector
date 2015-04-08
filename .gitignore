@@ -20,4 +20,4 @@ public/images/
 *.log
 
 # java class files
-classes/
+crawler/classes/
