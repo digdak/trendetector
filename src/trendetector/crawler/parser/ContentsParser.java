@@ -17,7 +17,6 @@ public abstract class ContentsParser {
 	protected void setUrl(String url) {
 		this.url = url;
 	}
-	
+
 	public abstract String parse() throws IOException;
-	
 }

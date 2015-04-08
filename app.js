@@ -5,7 +5,13 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var db = require('./dbcon');
+var mongodb;
+require('mongodb').MongoClient.connect('mongodb://localhost:27017/trendetector', function (err, db) {
+    if (err) {
+        throw err;
+    }
+    mongodb = db;
+});
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
@@ -26,7 +32,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Make our db accessible to our router
 app.use(function(req, res, next){
-    req.db = db;
+    req.db = mongodb;
     next();
 });
 

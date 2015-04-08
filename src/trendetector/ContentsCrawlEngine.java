@@ -1,184 +1,98 @@
 package trendetector;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.Date;
 
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 
 import trendetector.crawler.FileURL;
 import trendetector.crawler.parser.ContentsParserFactory;
-import beom.api.connect.db.mysql.MySqlDBConnection;
+import trendetector.mongodb.MongoDB;
 
-import com.google.gson.Gson;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoDatabase;
+
 
 
 public class ContentsCrawlEngine {
 	
 	public static void main(String[] args) throws ClassNotFoundException, InterruptedException {
-		MySqlDBConnection mysql = new MySqlDBConnection();
-		PreparedStatement pstmt = null;
+		MongoDatabase db = MongoDB.create();
 		
-		MongoCollection<org.bson.Document> mongoDbCollection = null;
-		
-		Gson gson = new Gson();
-		
-		String selectQuery = "SELECT board_list.community, article_list.board_id, article_list.article_no, "
-				+ "article_list.subject, article_list.url " 
-				+ "FROM article_list inner join board_list on board_list.id = article_list.board_id "
-				+ "WHERE article_list.flag = 'D'  order by article_list.date desc limit 100";
-		
-		Whitelist whitelist = Whitelist.basic();
-		whitelist.addTags("div");
-		whitelist.addAttributes("img", "src", "uploaded", "width", "height");
-		whitelist.addProtocols("img", "src", "http", "https");
-		whitelist.addAttributes("iframe", "src", "width", "height", "type");
-		whitelist.addAttributes("embed", "src", "width", "height", "type");
-		whitelist.addAttributes("object", "data", "width", "height", "type");
+		Document where = new Document("contents", new Document("$exists", false));
+		Document orderby = new Document("date", 1);
 		
 		while (true) {
 			try {
-				mysql.connect("127.0.0.1", 3306, "trendetector", "root", "root12!#");
-				pstmt = mysql.createPreparedStatement(
-						"UPDATE article_list SET flag = ? WHERE board_id = ? and article_no = ?"
-						);
+				FindIterable<Document> iter = 
+						db.getCollection("article").find(where).sort(orderby).limit(100);
 				
-				mongoDbCollection = new MongoClient("localhost", 27017).getDatabase("trendetector")
-										.getCollection("contents");
+				if (!iter.iterator().hasNext()) {
+					System.out.println(new Date() + "\tNot data...");
+					Thread.sleep(5000);
+					continue;
+				}
 				
-				while (true) {
-					ResultSet rs = mysql.execute(selectQuery);
-					Contents contents = new Contents();
-					
-					if (!rs.next()) {
-						System.out.println(new Date() + "\tNot data...");
-						rs.close();
-						Thread.sleep(5000);
-						continue;
-					}
-					
-					do {
-						try {
-							contents.setArticleNo(rs.getInt("article_list.article_no"));
-							contents.setBoardId(rs.getInt("article_list.board_id"));
-							contents.setCommunity(rs.getString("board_list.community"));
-							contents.setUrl(rs.getString("article_list.url"));
-							contents.setSubject(rs.getString("article_list.subject"));
+				iter.forEach( (Document doc) -> {
+					try {
+						ObjectId board_id = doc.getObjectId("board_id");
+						
+						String contents = ContentsParserFactory.create(
+								doc.getString("community"), doc.getString("url")).parse();
+						
+						Document board = db.getCollection("board")
+							.find(new Document("_id", board_id))
+							.projection(new Document("imagedown", true)).first();
+						
+						
+						if (board == null || board.getBoolean("imagedown") == null) {
+							// not exist board or not exist imagedown field
 							
-						} catch (Exception e) {
-							e.printStackTrace();
-							continue;
-						}
+						} else if (board.getBoolean("imagedown") == false) {
+							// set false imagedown flag
 							
-						try {
-							
-							Document doc = Jsoup.parse(
-									Jsoup.clean(
-									ContentsParserFactory.create(contents.getCommunity(), contents.getUrl()).parse(), 
-									contents.getUrl(), whitelist)
+						} else if (board.getBoolean("imagedown") == true) {
+							// image down
+							org.jsoup.nodes.Document html = Jsoup.parse(
+									contents
 							);
 							
-							Elements uploadedImages = doc.select("img[uploaded=true]");
+							Elements uploadedImages = html.select("img[uploaded=true]");
 							for (Element image : uploadedImages) {
 								String imageUrl = image.attr("src");
 								String filename = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
-								FileURL.download(imageUrl, "D:\\Beom\\workspace\\trendetector\\public\\images\\" + contents.getCommunity() + "\\" + 
-										contents.getBoardId() + "\\" + filename);
-								image.select("img").attr("src", "/images/" +  contents.getCommunity() + "/" + contents.getBoardId() + "/" + filename);
+								FileURL.download(imageUrl, "public\\images\\" + 
+										board_id.toString() + "\\" + filename);
+								image.select("img").attr("src", "/images/" +  board_id.toString() + "/" + filename);
 							}
 							
-							contents.setContents(doc.toString());
-							
-							mongoDbCollection.insertOne(org.bson.Document.parse(gson.toJson(contents)));
-							pstmt.setString(1, "T");
-							
-						} catch (Exception e) {
-							e.printStackTrace();
-							pstmt.setString(1, "F");
+							contents = html.toString();
 						}
 						
-						pstmt.setInt(2, contents.getBoardId());
-						pstmt.setInt(3, contents.getArticleNo());
-						mysql.executeUpdate(pstmt);
+						db.getCollection("article").updateOne(
+							new Document("_id", doc.getObjectId("_id")),
+							new Document("$set", new Document("contents", contents))
+						);
 						
-					} while (rs.next());
+					} catch (Exception e) {
+						db.getCollection("article").updateOne(
+								new Document("_id", doc.getObjectId("_id")),
+								new Document("$set", new Document("contents", false))
+							);
+						e.printStackTrace();
+					}
+				});
 					
-					rs.close();
-				}
-				
 			} catch (Exception e) {
 				e.printStackTrace();
-				try { pstmt.close(); } catch (Exception e2) { }
-				mysql.close();
 				Thread.sleep(5000);
 			}
-			break;
 		}
+		
 	}
 	
 }
 
-
-class Contents {
-	private int article_no;
-	private int board_id;
-	private String subject;
-	private String url;
-	private String community;
-	private String contents;
-	
-	public int getArticleNo() {
-		return article_no;
-	}
-	
-	public void setArticleNo(int articleNo) {
-		this.article_no = articleNo;
-	}
-	
-	public int getBoardId() {
-		return board_id;
-	}
-	
-	public void setBoardId(int boardId) {
-		this.board_id = boardId;
-	}
-	
-	public String getSubject() {
-		return subject;
-	}
-	
-	public void setSubject(String subject) {
-		this.subject = subject;
-	}
-	
-	public String getUrl() {
-		return url;
-	}
-	
-	public void setUrl(String url) {
-		this.url = url;
-	}
-	
-	public String getCommunity() {
-		return community;
-	}
-	
-	public void setCommunity(String community) {
-		this.community = community;
-	}
-
-	public String getContents() {
-		return contents;
-	}
-
-	public void setContents(String contents) {
-		this.contents = contents;
-	}
-	
-}

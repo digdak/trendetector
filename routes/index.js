@@ -1,12 +1,14 @@
 var express = require('express');
 var fs = require('fs');
+var ObjectId = require('mongodb').ObjectId;
+
 var router = express.Router();
 
 /* GET home page. */
 router.get('/list', function (req, res, next) {
     var page = req.query.page;
 
-    if (page === undefined) {
+    if (page === undefined || page === '') {
         page = 1;
     }
 
@@ -15,48 +17,46 @@ router.get('/list', function (req, res, next) {
 
 router.get('/view', function (req, res, next) {
     var page = req.query.page;
-    var board_id = req.query.board_id;
-    var article_no = req.query.article_no;
+    var article_id = req.query.article_id;
 
-    if (page === undefined) {
+    if (page === undefined || page === '') {
         page = 1;
     }
 
-    res.render('view', { title: article_no, page: page, board_id: board_id, article_no: article_no });
+    res.render('view', { title: article_id, page: page, article_id: article_id });
 });
 
 
 
-router.get('/articlelist', function (req, res, next) {
+router.get('/article/list', function (req, res, next) {
     var db = req.db;
     var page = req.query.page;
 
-    if (page === undefined) {
+    if (page === undefined || page === '') {
         page = 1;
     }
     page = (page - 1) * 50
 
-    db.mysql.query('SELECT * FROM trendetector.v_complated_article order by date desc limit ' + page + ', 50', function (err, result) {
-       res.json(result);
-    });
+    db.collection('article').find({ contents: { $exists: true } }, { contents: false })
+        .sort({ date: -1 }).skip(page).limit(50).toArray(
+        function (err, article_list) {
+            if (err) {
+                throw err;
+            }
+            res.json(article_list);
+        }
+    );
 });
 
-router.get('/contents', function (req, res, next) {
+router.get('/article/:id', function (req, res, next) {
     var db = req.db;
-    var board_id = req.query.board_id;
-    var article_no = req.query.article_no;
+    var article_id = req.params.id;
 
-    console.log(board_id);
-    console.log(article_no);
-    board_id = Number(board_id);
-    article_no = Number(article_no);
-
-    db.mongodb.collection('contents').findOne({ board_id: board_id, article_no: article_no }, {}, function (err, data) {
+    db.collection('article').findOne({ _id: new ObjectId(article_id) }, {}, function (err, article) {
         if (err) {
             throw err;
         }
-
-        res.json(data);
+        res.json(article);
     });
 });
 

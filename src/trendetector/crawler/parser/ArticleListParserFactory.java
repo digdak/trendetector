@@ -14,6 +14,7 @@ import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 
 import trendetector.crawler.Article;
+import trendetector.crawler.FileURL;
 import trendetector.crawler.URLStringUtil;
 
 public class ArticleListParserFactory {
@@ -24,6 +25,8 @@ public class ArticleListParserFactory {
 			return new ClienParser(url);
 		case "SR":
 			return new SLRClubParser(url);
+		case "OU":
+			return new TodayHumorParser(url);
 		}
 		
 		return null;
@@ -33,8 +36,8 @@ public class ArticleListParserFactory {
 
 
 class ClienParser extends ArticleListParser {
-	private Whitelist whitelist;	// ÀÛ¼ºÀÚ°¡ textÀÎ °æ¿ì¿Í imgÀÎ °æ¿ì Ã³¸®
-	private SimpleDateFormat strToDateFormat;	// ÀÛ¼ºÀÏ parsing
+	private Whitelist whitelist;	// ì‘ì„±ìê°€ textì¸ ê²½ìš°ì™€ imgì¸ ê²½ìš° ì²˜ë¦¬
+	private SimpleDateFormat strToDateFormat;	// ì‘ì„±ì¼ parsing
 	
 	public ClienParser(String url) {
 		super(url);
@@ -46,7 +49,8 @@ class ClienParser extends ArticleListParser {
 
 	public List<Article> parse(ArticleParseError parseError) throws IOException {
 		List<Article> articleList = new ArrayList<Article>();
-		Document doc = Jsoup.connect(this.getUrl()).get();
+		Document doc = new Document(this.getUrl());
+		doc.html(FileURL.getHtml(this.getUrl()));
 		Elements items = doc.select(".board_main .mytr");
 		
 		/* set Next Page URL */
@@ -58,7 +62,7 @@ class ClienParser extends ArticleListParser {
 			try {
 				Elements td = item.select("td");
 				
-				/* °ü¸®ÀÚ°¡ »èÁ¦ÇÑ °Ô½Ã±Û ¿¹¿ÜÃ³¸® */
+				/* ê´€ë¦¬ìê°€ ì‚­ì œí•œ ê²Œì‹œê¸€ ì˜ˆì™¸ì²˜ë¦¬ */
 				if (td.get(3).select("span").attr("title").isEmpty()) {
 					continue;
 				}
@@ -66,10 +70,10 @@ class ClienParser extends ArticleListParser {
 				article.setArticleNo(Integer.parseInt(td.get(0).text()));
 				article.setSubject(td.get(1).select("a").text());
 				
-				/* ÀÛ¼ºÀÚ°¡ imgÀÎ °æ¿ì src¸¦ Àı´ë°æ·Î·Î º¯°æ */
+				/* ì‘ì„±ìê°€ imgì¸ ê²½ìš° srcë¥¼ ì ˆëŒ€ê²½ë¡œë¡œ ë³€ê²½ */
 				article.setAuthor(Jsoup.clean(td.get(2).html(), this.getUrl(), whitelist));
 				
-				/* replies°¡ ÀÖ´Â °æ¿ì [%d] ÇüÅÂ¸¦ Á¤±Ô½ÄÀ¸·Î ¾È¿¡ ¼ıÀÚ°ª¸¸ °ËÃâ */
+				/* repliesê°€ ìˆëŠ” ê²½ìš° [%d] í˜•íƒœë¥¼ ì •ê·œì‹ìœ¼ë¡œ ì•ˆì— ìˆ«ìê°’ë§Œ ê²€ì¶œ */
 				String strReplies = td.get(1).select("span").text();
 				if (!strReplies.isEmpty()) {
 					article.setReplies(Integer.parseInt(strReplies.replaceAll("[\\[\\]]", "")));
@@ -93,9 +97,9 @@ class ClienParser extends ArticleListParser {
 
 
 class SLRClubParser extends ArticleListParser {
-	private Date lastDate;	// ¸¶Áö¸· ÆÄ½ÌÇÑ ±ÛÀÇ ½Ã°£
-	private SimpleDateFormat strToDateFormat;	// String -> Date º¯°æ Æ÷¸Ë
-	private SimpleDateFormat dateToStrFormat;	// Date -> String º¯°æ Æ÷¸Ë
+	private Date lastDate;	// ë§ˆì§€ë§‰ íŒŒì‹±í•œ ê¸€ì˜ ì‹œê°„
+	private SimpleDateFormat strToDateFormat;	// String -> Date ë³€ê²½ í¬ë©§
+	private SimpleDateFormat dateToStrFormat;	// Date -> String ë³€ê²½ í¬ë©§
 	
 	public SLRClubParser(String url) {
 		super(url);
@@ -107,7 +111,8 @@ class SLRClubParser extends ArticleListParser {
 	@Override
 	public List<Article> parse(ArticleParseError parseError) throws IOException {
 		List<Article> articleList = new ArrayList<Article>();
-		Document doc = Jsoup.connect(this.getUrl()).get();
+		Document doc = new Document(this.getUrl());
+		doc.html(FileURL.getHtml(this.getUrl()));
 		Elements items = doc.select("#bbs_list tbody tr");
 		
 		/* set Next Page URL */
@@ -123,18 +128,24 @@ class SLRClubParser extends ArticleListParser {
 			Article article = new Article();
 			
 			try {
-				/* °øÁö»çÇ×ÀÇ °æ¿ì °Ô½Ã±Û ¹øÈ£°¡ ¾øÀ¸¹Ç·Î ¿¹¿ÜÃ³¸® */
+				/* ê³µì§€ì‚¬í•­ì˜ ê²½ìš° ê²Œì‹œê¸€ ë²ˆí˜¸ê°€ ì—†ìœ¼ë¯€ë¡œ ì˜ˆì™¸ì²˜ë¦¬ */
 				if (item.select(".list_num").text().isEmpty()) {
 					continue;
 				}
 				
-				/* ´äº¯°Ô½Ã±ÛÀÇ °æ¿ì ¸Ç¾Õ¿¡ img°¡ ÀÖ´ÂÁö ¿©ºÎ·Î ÆÇ´ÜÇÏ¿© ¿¹¿ÜÃ³¸® */
+				/* ë‹µë³€ê²Œì‹œê¸€ì˜ ê²½ìš° ë§¨ì•ì— imgê°€ ìˆëŠ”ì§€ ì—¬ë¶€ë¡œ íŒë‹¨í•˜ì—¬ ì˜ˆì™¸ì²˜ë¦¬ */
 				if (!item.select(".sbj img").isEmpty()) {
 					continue;
 				}
 				
-				/* SLRÅ¬·´Àº 24½Ã°£ ÀÌÀü±Û±îÁö´Â ÀÛ¼ºÀÏÀ» HH:mm:ss ·Î Ç¥ÇöÇÏ´Âµ¥,
-				 * ´Ù¸¥ ÆĞÅÏÀÎ °æ¿ì ¿¹¿ÜÃ³¸® */
+				/* SLRí´ëŸ½ ê²Œì‹œê¸€ ì¤‘ HITìˆ˜ê°€ 100 ì´ìƒì¸ ê²ƒë§Œ ê°€ì ¸ì˜´ */
+				article.setHit(Integer.parseInt(item.select(".list_click").text()));
+				if (article.getHit() < 100) {
+					continue;
+				}
+				
+				/* SLRí´ëŸ½ì€ 24ì‹œê°„ ì´ì „ê¸€ê¹Œì§€ëŠ” ì‘ì„±ì¼ì„ HH:mm:ssë¡œ í‘œí˜„í•˜ëŠ”ë°,
+				 * ë‹¤ë¥¸ íŒ¨í„´ì¸ ê²½ìš° ì˜ˆì™¸ì²˜ë¦¬ */
 				String strDate = item.select(".list_date").text();
 				if (!Pattern.matches("[0-2][0-9]:[0-5][0-9]:[0-5][0-9]", strDate)) {
 					continue;
@@ -144,20 +155,18 @@ class SLRClubParser extends ArticleListParser {
 				article.setSubject(item.select(".sbj a").text());
 				article.setAuthor(item.select(".list_name").text());
 				
-				/* ´ñ±Û ¼ö ÃßÃâ ½Ã Á¦°ÅµÇ´Â ÅÂ±×ÀÌ¹Ç·Î ¹İµå½Ã ¸ÕÀú ÇØ¾ß ÇÔ */
+				/* ëŒ“ê¸€ ìˆ˜ ì¶”ì¶œ ì‹œ ì œê±°ë˜ëŠ” íƒœê·¸ì´ë¯€ë¡œ ë°˜ë“œì‹œ ë¨¼ì € í•´ì•¼ í•¨ */
 				article.setUrl(item.select(".sbj a").attr("abs:href"));
 				
-				/* ´ñ±Û ¼ö¸¦ ÃßÃâÇÏ±â À§ÇØ Á¦¸ñ¿¡¼­ a ÅÂ±×·Î °¨½ÎÁø ºÎºĞÀ» Á¦°ÅÇÏ°í ÆÄ½Ì */
+				/* ëŒ“ê¸€ ìˆ˜ë¥¼ ì¶”ì¶œí•˜ê¸° ìœ„í•´ ì œëª©ì—ì„œ a íƒœê·¸ë¡œ ê°ì‹¸ì§„ ë¶€ë¶„ì„ ì œê±°í•˜ê³  íŒŒì‹± */
 				item.select(".sbj a").remove();
 				String strReplies = item.select(".sbj").text();
 				if (!strReplies.isEmpty()) {
 					article.setReplies(Integer.parseInt(strReplies.replaceAll("[\\[\\]]", "")));
 				}
 				
-				article.setHit(Integer.parseInt(item.select(".list_click").text()));
-				
-				/* ¸ñ·Ï¿¡¼­ ³¯Â¥¸¦ È®ÀÎÇÒ ¼ö ÀÖ´Â ¹æ¹ıÀÌ ¾øÀ¸¹Ç·Î ¸¶Áö¸· ÆÄ½ÌÇÑ ±ÛÀÇ ½Ã°£À»
-				 * ±â·ÏÇØ µÎ°í Å« Â÷ÀÌ·Î Áõ°¡ÇÑ °æ¿ì ÇÏ·ç Àü ±ÛÀÌ µÈ ½ÃÁ¡À¸·Î ÆÇ´ÜÇÔ */
+				/* ëª©ë¡ì—ì„œ ë‚ ì§œë¥¼ í™•ì¸í•  ìˆ˜ ìˆëŠ” ë°©ë²•ì´ ì—†ìœ¼ë¯€ë¡œ ë§ˆì§€ë§‰ íŒŒì‹±í•œ ê¸€ì˜ ì‹œê°„ì„
+				 * ê¸°ë¡í•´ ë‘ê³  í° ì°¨ì´ë¡œ ì¦ê°€í•œ ê²½ìš° í•˜ë£¨ ì „ ê¸€ì´ ëœ ì‹œì ìœ¼ë¡œ íŒë‹¨í•¨ */
 				Date date = null;
 				if (lastDate == null) {
 					Date now = new Date();
@@ -179,6 +188,56 @@ class SLRClubParser extends ArticleListParser {
 				}
 				lastDate = date;
 				article.setDate(date);
+				
+				articleList.add(article);
+				
+			} catch (Exception e) {
+				parseError.callback(e, article);
+			}
+		}
+		
+		return articleList;
+	}
+	
+}
+
+
+class TodayHumorParser extends ArticleListParser {
+	private SimpleDateFormat strToDateFormat;	// ì‘ì„±ì¼ parsing
+	
+	public TodayHumorParser(String url) {
+		super(url);
+		this.strToDateFormat  = new SimpleDateFormat("yy/MM/dd HH:mm");
+	}
+
+	public List<Article> parse(ArticleParseError parseError) throws IOException {
+		List<Article> articleList = new ArrayList<Article>();
+		Document doc = new Document(this.getUrl());
+		doc.html(FileURL.getHtml(this.getUrl()));
+		Elements items = doc.select(".table_list tbody .view");
+		items.remove();
+		
+		/* set Next Page URL */
+		this.setNextPageUrl(doc.select(".table_list tbody tr tbody a").last().attr("abs:href"));
+		
+		for (Element item : items) {
+			Article article = new Article();
+			
+			try {
+				article.setArticleNo(Integer.parseInt(item.select(".no").text()));
+				article.setSubject(item.select(".subject a").text());
+				article.setAuthor(item.select(".name").text());
+				
+				/* repliesê°€ ìˆëŠ” ê²½ìš° [%d] í˜•íƒœë¥¼ ì •ê·œì‹ìœ¼ë¡œ ì•ˆì— ìˆ«ìê°’ë§Œ ê²€ì¶œ */
+				Element font = item.select(".subject font").first();
+				String strReplies = ( font != null ? font.text() : "");
+				if (!strReplies.isEmpty()) {
+					article.setReplies(Integer.parseInt(strReplies.trim().replaceAll("[\\[\\]]", "")));
+				}
+				
+				article.setHit(Integer.parseInt(item.select(".hits").text()));
+				article.setDate(strToDateFormat.parse(item.select(".date").text()));
+				article.setUrl(item.select(".subject a").attr("abs:href"));
 				
 				articleList.add(article);
 				
