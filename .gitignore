@@ -1,6 +1,11 @@
 # webstorm idea configure
 .idea/
 
+# eclipse configure
+# .classpath
+# .project
+.settings/
+
 # mongodb data storage
 data/
 
@@ -15,7 +20,3 @@ public/images/
 
 # java class files
 classes/
-
-# eclipse configure
-# .classpath
-# .project
