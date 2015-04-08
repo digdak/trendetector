@@ -8,7 +8,7 @@ data/
 node_modules/
 
 # uploaded image files
-public/images/
+public/images/*
 
 # log files
 *.log
