@@ -290,7 +290,8 @@ class DogDripParser extends ArticleListParser {
 				
 				article.setArticleNo(Integer.parseInt(item.select(".num").text()));
 				article.setSubject(item.select(".title a").text());
-				article.setAuthor(item.select(".author div").text());
+				
+				article.setAuthor(Jsoup.clean(item.select(".author div").html(), Whitelist.none().addAttributes("img", "src", "style")));
 				
 				String strReplies = item.select(".title .replyAndTrackback strong").text();
 				if (!strReplies.isEmpty()) {

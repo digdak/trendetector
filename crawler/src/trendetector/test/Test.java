@@ -23,9 +23,9 @@ public class Test {
 				System.out.println(Integer.parseInt(strReplies));
 			}
 			
-			String str = "127/34";
-			str = str.substring(0, str.indexOf("/"));
-			System.out.println(str);
+			String str = "<img src=\"http:www.naver.com\" alt=\"병신력\" style=\"margin: 0px\">123123</img>";
+			System.out.println(Jsoup.clean(str, url, Whitelist.none().addAttributes("img", "src", "style")));
+			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
