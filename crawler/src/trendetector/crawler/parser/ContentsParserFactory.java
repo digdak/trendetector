@@ -76,6 +76,20 @@ public class ContentsParserFactory {
 					return Jsoup.clean(content.html(), url, whitelist);
 				}
 			};
+			
+		case "DD":
+			return new ContentsParser(url) {
+				@Override
+				public String parse() throws IOException {
+					Document doc = new Document(this.getUrl());
+					doc.html(FileURL.getHtml(this.getUrl()));
+					
+					Elements content = doc.select("#article_1");
+					content.select(".document_popup_menu").remove();	// 팝업메뉴 제거
+					content.select("wgtRv").remove();	// 추천 비추천 버튼 제거
+					return Jsoup.clean(content.html(), url, whitelist);
+				}
+			};
 		}
 		
 		return null;

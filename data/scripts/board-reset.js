@@ -15,6 +15,10 @@ var rows =
 	{
 		_id: 'OU',
 		name: '오늘의유머'
+	},
+	{
+		_id: 'DD',
+		name: '개드립'
 	}
 ];
 db.community.insert(rows);
@@ -26,27 +30,33 @@ var rows =
 		community: 'CL',
 		name: '모두의공원',
 		url: 'http://www.clien.net/cs2/bbs/board.php?bo_table=park',
-		active: true,
+		active: false,
 		imagedown: true
 	},
 	{
 		community: 'CL',
 		name: '새로운소식',
 		url: 'http://www.clien.net/cs2/bbs/board.php?bo_table=news',
-		active: true,
+		active: false,
 		imagedown: true
 	},
 	{
 		community: 'SR',
 		name: '자유게시판',
 		url: 'http://www.slrclub.com/bbs/zboard.php?id=free',
-		active: true,
+		active: false,
 		imagedown: true
 	},
 	{
 		community: 'OU',
 		name: '베스트게시물',
 		url: 'http://www.todayhumor.co.kr/board/list.php?table=humorbest',
+		active: false
+	},
+	{
+		community: 'DD',
+		name: '개드립',
+		url: 'http://www.dogdrip.net/dogdrip',
 		active: true
 	}
 ]

@@ -27,6 +27,8 @@ public class ArticleListParserFactory {
 			return new SLRClubParser(url);
 		case "OU":
 			return new TodayHumorParser(url);
+		case "DD":
+			return new DogDripParser(url);
 		}
 		
 		return null;
@@ -236,8 +238,92 @@ class TodayHumorParser extends ArticleListParser {
 				}
 				
 				article.setHit(Integer.parseInt(item.select(".hits").text()));
+				String votes = item.select(".oknok").text();
+				article.setVotes(Integer.parseInt(votes.substring(0, votes.indexOf("/"))));
 				article.setDate(strToDateFormat.parse(item.select(".date").text()));
 				article.setUrl(item.select(".subject a").attr("abs:href"));
+				
+				articleList.add(article);
+				
+			} catch (Exception e) {
+				parseError.callback(e, article);
+			}
+		}
+		
+		return articleList;
+	}
+	
+}
+
+
+class DogDripParser extends ArticleListParser {
+	private Date lastDate;	// 마지막 파싱한 글의 시간
+	private SimpleDateFormat strToDateFormat;	// String -> Date 변경 포멧
+	private SimpleDateFormat dateToStrFormat;	// Date -> String 변경 포멧
+	
+	public DogDripParser(String url) {
+		super(url);
+		this.lastDate = null;
+		this.strToDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		this.dateToStrFormat = new SimpleDateFormat("yyyy/MM/dd");
+	}
+
+	public List<Article> parse(ArticleParseError parseError) throws IOException {
+		List<Article> articleList = new ArrayList<Article>();
+		Document doc = new Document(this.getUrl());
+		doc.html(FileURL.getHtml(this.getUrl()));
+		Elements items = doc.select(".boardList tbody tr");
+		
+		/* set Next Page URL */
+		this.setNextPageUrl(doc.select(".pagination strong + a").attr("abs:href"));
+		
+		for (Element item : items) {
+			Article article = new Article();
+			
+			try {
+				/* 개드립은 24시간 이전글까지는 작성일을 HH:mm:ss로 표현하는데,
+				 * 다른 패턴인 경우 예외처리 */
+				String strDate = item.select(".date").text();
+				if (!Pattern.matches("[0-2][0-9]:[0-5][0-9]:[0-5][0-9]", strDate)) {
+					continue;
+				}
+				
+				article.setArticleNo(Integer.parseInt(item.select(".num").text()));
+				article.setSubject(item.select(".title a").text());
+				article.setAuthor(item.select(".author div").text());
+				
+				String strReplies = item.select(".title .replyAndTrackback strong").text();
+				if (!strReplies.isEmpty()) {
+					article.setReplies(Integer.parseInt(strReplies));
+				}
+				
+				article.setVotes(Integer.parseInt(item.select(".recommend").text()));
+				
+				/* 목록에서 날짜를 확인할 수 있는 방법이 없으므로 마지막 파싱한 글의 시간을
+				 * 기록해 두고 큰 차이로 증가한 경우 하루 전 글이 된 시점으로 판단함 */
+				Date date = null;
+				if (lastDate == null) {
+					Date now = new Date();
+					date = strToDateFormat.parse(dateToStrFormat.format(now) + " " + strDate);
+					
+					if (date.getTime() - now.getTime() > 12 * 60 * 60 * 1000) {
+						date = new Date(date.getTime() - 24 * 60 * 60 * 1000);
+					} 
+					else if (now.getTime() - date.getTime() > 12 * 60 * 60 * 1000) {
+						date = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+					}
+				}
+				else {
+					date = strToDateFormat.parse(dateToStrFormat.format(lastDate) + " " + strDate);
+					
+					if (date.getTime() - lastDate.getTime() > 12 * 60 * 60 * 1000) {
+						date = new Date(date.getTime() - 24 * 60 * 60 * 1000);
+					}
+				}
+				lastDate = date;
+				article.setDate(date);
+				
+				article.setUrl(item.select(".title a").attr("abs:href"));
 				
 				articleList.add(article);
 				

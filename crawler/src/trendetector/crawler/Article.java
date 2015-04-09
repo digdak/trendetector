@@ -8,6 +8,7 @@ public class Article {
 	private String author;
 	private int replies;
 	private int hit;
+	private int votes;
 	private Date date;
 	private String url;
 	
@@ -49,6 +50,14 @@ public class Article {
 	
 	public void setHit(int hit) {
 		this.hit = hit;
+	}
+	
+	public int getVotes() {
+		return votes;
+	}
+
+	public void setVotes(int votes) {
+		this.votes = votes;
 	}
 	
 	public Date getDate() {

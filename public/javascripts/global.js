@@ -44,6 +44,7 @@ function populateTable() {
             tableContent += '<td>' + this.author + '</td>';
             tableContent += '<td>' + new Date(this.date).format('y-m-d H:i:s') + '</td>';
             tableContent += '<td>' + this.hit + '</td>';
+            tableContent += '<td>' + this.votes + '</td>';
             tableContent += '</tr>';
         });
 

@@ -6,24 +6,26 @@ import org.jsoup.nodes.Element;
 import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 
+import trendetector.crawler.FileURL;
+
 
 public class Test {
-	private static Whitelist whitelist;
 	
-	static {
-		whitelist = Whitelist.basic();
-		whitelist.addTags("div");
-		whitelist.addAttributes("iframe", "src", "width", "height", "type");
-		whitelist.addAttributes("embed", "src", "width", "height", "type");
-		whitelist.addAttributes("object", "data", "width", "height", "type");
-		whitelist.addAttributes(":all", "style");
-	}
-
 	public static void main(String[] args) {
 		try {
-//			
-			String html = "<html><body><div class=\"abc\"><img style=\"display:none\" src=\"abc.jpg\"/><span>a</span><p>c</p><span style=\"type:bold\">b</span></div></body></html>";
-			System.out.println(Jsoup.clean(html, whitelist));
+			String url = "http://www.dogdrip.net/dogdrip";
+			Document doc = new Document(url);
+			doc.html("<body><div><font>  1  </font></div></body>");
+//			Elements items = doc.select(".boardList tbody tr");
+
+			String strReplies = doc.select("font").text();
+			if (!strReplies.isEmpty()) {
+				System.out.println(Integer.parseInt(strReplies));
+			}
+			
+			String str = "127/34";
+			str = str.substring(0, str.indexOf("/"));
+			System.out.println(str);
 			
 		} catch (Exception e) {
 			e.printStackTrace();

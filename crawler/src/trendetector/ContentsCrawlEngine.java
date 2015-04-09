@@ -65,7 +65,8 @@ public class ContentsCrawlEngine {
 							Elements uploadedImages = html.select("img[uploaded=true]");
 							for (Element image : uploadedImages) {
 								String imageUrl = image.attr("src");
-								String filename = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+								String filename = doc.getObjectId("_id") + "_" + image.hashCode()
+										+ imageUrl.substring(imageUrl.lastIndexOf('.'));
 								FileURL.download(imageUrl, "public\\images\\" + 
 										board_id.toString() + "\\" + filename);
 								image.select("img").attr("src", "/images/" +  board_id.toString() + "/" + filename);

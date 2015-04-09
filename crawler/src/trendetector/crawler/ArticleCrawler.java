@@ -67,6 +67,7 @@ public class ArticleCrawler implements Runnable {
 						.append("author", article.getAuthor())
 						.append("replies", article.getReplies())
 						.append("hit", article.getHit())
+						.append("votes", article.getVotes())
 						.append("date", article.getDate())
 						.append("url", article.getUrl());
 					
