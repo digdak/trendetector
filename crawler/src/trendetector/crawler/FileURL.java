@@ -11,10 +11,19 @@ import java.io.OutputStream;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 public class FileURL {
+	private static RequestConfig config = RequestConfig.custom()
+			  .setConnectTimeout(5 * 1000)
+			  .setConnectionRequestTimeout(5 * 1000)
+			  .setSocketTimeout(5 * 1000).build();
+	
+	private static HttpClient httpClient = HttpClientBuilder.create()
+			.setDefaultRequestConfig(config).build();
+	
 	public static void download(String url, String path) throws IOException {
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		HttpGet get = new HttpGet(url);
@@ -41,7 +50,6 @@ public class FileURL {
 	}
 	
 	public static String getHtml(String url) throws  IOException {
-		HttpClient httpClient = HttpClientBuilder.create().build();
 		HttpGet get = new HttpGet(url);
 		get.addHeader("Referer", url);
 		HttpResponse res = httpClient.execute(get);

@@ -49,8 +49,9 @@ public class ArticleCrawler implements Runnable {
 		
 		try {
 			parserLoop: do {
+//				System.out.print(new Date() + "\ttry... ");
 				List<Article> articleList = parser.parse(callbackParseError);
-//				System.out.println(new Date() + "\t\tdone: " + parser.getUrl());
+//				System.out.println("done: " + parser.getUrl());
 				
 				if (articleList.isEmpty()) {
 					break;
