@@ -31,17 +31,19 @@ public class ContentsCrawlEngine {
 						db.getCollection("article").find(where).sort(orderby).limit(100);
 				
 				if (!iter.iterator().hasNext()) {
-					System.out.println(new Date() + "\tNot data...");
+					System.out.println(new Date() + "\t[SLEEP] ...5000ms");
 					Thread.sleep(5000);
 					continue;
 				}
 				
 				iter.forEach( (Document doc) -> {
+					ObjectId board_id = doc.getObjectId("board_id");
+					String community = doc.getString("community");
+
 					try {
-						ObjectId board_id = doc.getObjectId("board_id");
 						
 						String contents = ContentsParserFactory.create(
-								doc.getString("community"), doc.getString("url")).parse();
+								community, doc.getString("url")).parse();
 						
 						Document board = db.getCollection("board")
 							.find(new Document("_id", board_id))
@@ -76,13 +78,19 @@ public class ContentsCrawlEngine {
 							new Document("_id", doc.getObjectId("_id")),
 							new Document("$set", new Document("contents", contents))
 						);
+						System.out.println(new Date() + "\t[DONE] " + doc.getObjectId("_id") + 
+								"\t" + community + 
+								"\t" + board_id);
 						
 					} catch (Exception e) {
+						e.printStackTrace();
 						db.getCollection("article").updateOne(
 								new Document("_id", doc.getObjectId("_id")),
 								new Document("$set", new Document("contents", false))
 							);
-						e.printStackTrace();
+						System.out.println(new Date() + "\t[FAIL] " + doc.getObjectId("_id") + 
+								"\t" + community + 
+								"\t" + board_id);
 					}
 				});
 					

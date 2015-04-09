@@ -1,6 +1,5 @@
 package trendetector.crawler;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -13,6 +12,7 @@ import trendetector.crawler.parser.ArticleParseError;
 import trendetector.mongodb.MongoDB;
 
 import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.result.UpdateResult;
 
 
 public class ArticleCrawler implements Runnable {
@@ -50,7 +50,7 @@ public class ArticleCrawler implements Runnable {
 		try {
 			parserLoop: do {
 				List<Article> articleList = parser.parse(callbackParseError);
-				System.out.println(new Date() + "\t\tdone: " + parser.getUrl());
+//				System.out.println(new Date() + "\t\tdone: " + parser.getUrl());
 				
 				if (articleList.isEmpty()) {
 					break;
@@ -70,7 +70,13 @@ public class ArticleCrawler implements Runnable {
 						.append("url", article.getUrl());
 					
 					where.append("article_no", article.getArticleNo());
-					MongoDB.db.getCollection("article").updateOne(where, update, opt);
+					UpdateResult ur = MongoDB.db.getCollection("article").updateOne(where, update, opt);
+					
+					if (ur.getMatchedCount() == 0) {
+//						System.out.println(ur.getUpsertedId());
+						System.out.println(new Date() + "\t[DONE] " + ur.getUpsertedId().asObjectId().getValue() + 
+								"\t" + article.getSubject());
+					}
 				}
 			} while (parser.nextPage());
 			

@@ -33,7 +33,7 @@ public class ListCrawlEngine {
 					}
 				});
 				
-				System.out.println("[DONE] sleep...5000ms");
+				System.out.println(new Date() + "\t[SLEEP] ...5000ms");
 				Thread.sleep(5000);
 				
 			} catch (Exception e) {
