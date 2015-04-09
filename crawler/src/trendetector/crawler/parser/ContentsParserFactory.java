@@ -16,12 +16,12 @@ public class ContentsParserFactory {
 	static {
 		whitelist = Whitelist.basic();
 		whitelist.addTags("div");
-		whitelist.addAttributes("span", "style");
 		whitelist.addAttributes("img", "src", "uploaded", "width", "height");
 		whitelist.addProtocols("img", "src", "http", "https");
 		whitelist.addAttributes("iframe", "src", "width", "height", "type");
 		whitelist.addAttributes("embed", "src", "width", "height", "type");
 		whitelist.addAttributes("object", "data", "width", "height", "type");
+		whitelist.addAttributes(":all", "style");
 	}
 	
 	public static ContentsParser create(String community, String url) {

@@ -1,53 +1,29 @@
 package trendetector.test;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
-
-import org.bson.Document;
-
-import trendetector.mongodb.MongoDB;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.safety.Whitelist;
+import org.jsoup.select.Elements;
 
 
 public class Test {
+	private static Whitelist whitelist;
+	
+	static {
+		whitelist = Whitelist.basic();
+		whitelist.addTags("div");
+		whitelist.addAttributes("iframe", "src", "width", "height", "type");
+		whitelist.addAttributes("embed", "src", "width", "height", "type");
+		whitelist.addAttributes("object", "data", "width", "height", "type");
+		whitelist.addAttributes(":all", "style");
+	}
 
 	public static void main(String[] args) {
 		try {
-//			String url = "http://www.todayhumor.co.kr/board/list.php?table=humorbest";
 //			
-//			String html = "<html><table><tr><td class=\"subject\"><font> [4]</font></td></tr></table></body></html>";
-//			Document doc = new Document(url);
-//			doc.html(html);
-//			Elements items = doc.select(".subject");
-//			for (Element item : items) {
-//				
-//				Element font = item.select("font").first();
-//				String strReplies = ( font != null ? font.text() : "");
-//				System.out.println(strReplies.isEmpty());
-//				System.out.println(strReplies);
-//			}
-			Calendar cal = Calendar.getInstance();
-			
-			    
-			Date d = new Date();
-			cal.setTime(d); // sets calendar time/date
-			cal.add(Calendar.HOUR_OF_DAY, 1); // adds one hour
-			d = cal.getTime(); // returns new date object, one hour in the future
-			System.out.println(d);
-			Document doc = new Document("Date", d);
-			MongoDB.db.getCollection("test").insertOne(doc);
-			
-			Date d2 = new Date();
-			cal.setTime(d2); // sets calendar time/date
-			cal.add(Calendar.HOUR_OF_DAY, 9); // adds one hour
-			d2 = cal.getTime(); // returns new date object, one hour in the future
-			System.out.println(d2);
-			Document doc2 = new Document("Date", d2);
-			MongoDB.db.getCollection("test").insertOne(doc2);
-			
-			
-//			System.out.println(c.getTime());
-
+			String html = "<html><body><div class=\"abc\"><img style=\"display:none\" src=\"abc.jpg\"/><span>a</span><p>c</p><span style=\"type:bold\">b</span></div></body></html>";
+			System.out.println(Jsoup.clean(html, whitelist));
 			
 		} catch (Exception e) {
 			e.printStackTrace();
