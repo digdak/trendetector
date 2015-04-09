@@ -34,11 +34,15 @@ function populateTable() {
         $.each(data, function () {
             tableContent += '<tr>';
             tableContent += '<td>' + this.community + '</td>';
-            tableContent += '<td><a href="' +
+            tableContent += '<td class="subject"><a href="' +
                 '/view?page=' + page +
-                '&article_id=' + this._id + '">' + this.subject + '</a></td>';
+                '&article_id=' + this._id + '">' + this.subject + '</a>';
+            if (this.replies > 0) {
+                tableContent += ' [' + this.replies + ']';
+            }
+            tableContent += '</td>';
             tableContent += '<td>' + this.author + '</td>';
-            tableContent += '<td>' + this.date + '</td>';
+            tableContent += '<td>' + new Date(this.date).format('y-m-d H:i:s') + '</td>';
             tableContent += '<td>' + this.hit + '</td>';
             tableContent += '</tr>';
         });
@@ -54,6 +58,7 @@ function populateTable() {
 function showContents() {
     $.getJSON('/article/' + article_id, function (data) {
         $('#contentsUrl').html('<a href="' + data.url + '">' + data.url + '</a>');
+        $('#contentsSubject').html(data.subject);
         $('#contentsBody').html(data.contents);
     });
 };

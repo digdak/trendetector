@@ -41,6 +41,9 @@ a {
                 padding:5px 10px;
                 text-align:center;
             }
+            #articleList table .subject {
+                text-align:left;
+            }
 
 #contents {
     margin:0 0 50px 0;

@@ -1,10 +1,10 @@
 extends layout
 
-block content
-
+block wrapper
     // Wrapper
     #wrapper
         h1 Trendetector
+        block contents
 
         // ARTICLE LIST
         h2 Article List
@@ -22,5 +22,6 @@ block content
         // PAGING
         a(href='/list?page=#{Number(page) + 1}') 다음
         // /PAGING
-
     // /WRAPPER
+
+block articlelist

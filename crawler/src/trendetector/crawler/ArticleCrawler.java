@@ -28,8 +28,6 @@ public class ArticleCrawler implements Runnable {
 
 	@Override
 	public void run() {
-		Calendar cal = Calendar.getInstance();	// Fix timezone problem
-		
 		Document doc = new Document();
 		doc.append("community", community)
 			.append("board_id", board_id);
@@ -68,12 +66,8 @@ public class ArticleCrawler implements Runnable {
 						.append("author", article.getAuthor())
 						.append("replies", article.getReplies())
 						.append("hit", article.getHit())
-						// .append("date", article.getDate())
+						.append("date", article.getDate())
 						.append("url", article.getUrl());
-					
-					cal.setTime(article.getDate());
-					cal.add(Calendar.HOUR_OF_DAY, 9); // Fix timezone GMT+9
-					doc.append("date", cal.getTime());
 					
 					where.append("article_no", article.getArticleNo());
 					MongoDB.db.getCollection("article").updateOne(where, update, opt);
