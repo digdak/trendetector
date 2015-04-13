@@ -140,12 +140,6 @@ class SLRClubParser extends ArticleListParser {
 					continue;
 				}
 				
-				/* SLR클럽 게시글 중 HIT수가 100 이상인 것만 가져옴 */
-				article.setHit(Integer.parseInt(item.select(".list_click").text()));
-				if (article.getHit() < 100) {
-					continue;
-				}
-				
 				/* SLR클럽은 24시간 이전글까지는 작성일을 HH:mm:ss로 표현하는데,
 				 * 다른 패턴인 경우 예외처리 */
 				String strDate = item.select(".list_date").text();
@@ -166,6 +160,8 @@ class SLRClubParser extends ArticleListParser {
 				if (!strReplies.isEmpty()) {
 					article.setReplies(Integer.parseInt(strReplies.replaceAll("[\\[\\]]", "")));
 				}
+				
+				article.setHit(Integer.parseInt(item.select(".list_click").text()));
 				
 				/* 목록에서 날짜를 확인할 수 있는 방법이 없으므로 마지막 파싱한 글의 시간을
 				 * 기록해 두고 큰 차이로 증가한 경우 하루 전 글이 된 시점으로 판단함 */
@@ -288,7 +284,8 @@ class DogDripParser extends ArticleListParser {
 					continue;
 				}
 				
-				article.setArticleNo(Integer.parseInt(item.select(".num").text()));
+				String url = item.select(".title a").attr("abs:href");
+				article.setArticleNo(Integer.parseInt(url.substring(url.lastIndexOf("/") + 1)));
 				article.setSubject(item.select(".title a").text());
 				
 				article.setAuthor(Jsoup.clean(item.select(".author div").html(), Whitelist.none().addAttributes("img", "src", "style")));
@@ -323,8 +320,7 @@ class DogDripParser extends ArticleListParser {
 				}
 				lastDate = date;
 				article.setDate(date);
-				
-				article.setUrl(item.select(".title a").attr("abs:href"));
+				article.setUrl(url);
 				
 				articleList.add(article);
 				

@@ -75,6 +75,12 @@ public class ContentsCrawlEngine {
 							contents = html.toString();
 						}
 						
+						// TODO delete
+						org.jsoup.nodes.Document html = Jsoup.parse(
+								contents
+						);
+						contents = html.text();
+						
 						db.getCollection("article").updateOne(
 							new Document("_id", doc.getObjectId("_id")),
 							new Document("$set", new Document("contents", contents))

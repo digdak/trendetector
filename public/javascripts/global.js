@@ -68,6 +68,8 @@ function populateTable() {
             tableContent += '<td class="subject"><a href="' +
                 '/view?page=' + page +
                 '&article_id=' + this._id + '">' + this.subject + '</a>';
+//            tableContent += '<td class="subject">';
+//            tableContent += '<a href="' + this.url + '">' + this.subject + '</a>';
             if (this.replies > 0) {
                 tableContent += ' [' + this.replies + ']';
             }
