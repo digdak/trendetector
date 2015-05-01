@@ -13,7 +13,7 @@ router.get('/list', function (req, res, next) {
         page = 1;
     }
 
-    res.render('index', { title: 'Trendetector', page: page });
+    res.render('index', { 'title': 'Trendetector', 'page': page, 'community': community });
 });
 
 router.get('/view', function (req, res, next) {
