@@ -28,7 +28,7 @@ function populateTable() {
     var tableContent = '';
 
     // jQuery AJAX call for JSON
-    $.getJSON('/article/list', { 'page': page }, function (data) {
+    $.getJSON('/article/list', { 'page': page , 'community': community }, function (data) {
         // /contents?community=CL&board_id=1&article_no=36747974
         // For each item in our JSON, add a table row and cells to the content string
         $.each(data, function () {
