@@ -26,12 +26,16 @@ function populateTable() {
 
     // Empty content string
     var tableContent = '';
+    var query = { 'page': page };
 
+    if(community !== "") {
+        query.community = community;
+    }
     // jQuery AJAX call for JSON
-    $.getJSON('/article/list', { 'page': page , 'community': community }, function (data) {
+    $.getJSON('/article/list', query, function (data) {
         // /contents?community=CL&board_id=1&article_no=36747974
         // For each item in our JSON, add a table row and cells to the content string
-        $.each(data, function () {
+        $.each(data.datas, function () {
             tableContent += '<tr>';
             tableContent += '<td>' + this.community + '</td>';
             tableContent += '<td class="subject"><a href="' +
