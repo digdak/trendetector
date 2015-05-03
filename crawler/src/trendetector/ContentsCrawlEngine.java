@@ -41,7 +41,6 @@ public class ContentsCrawlEngine {
 					String community = doc.getString("community");
 
 					try {
-						
 						String contents = ContentsParserFactory.create(
 								community, doc.getString("url")).parse();
 						
@@ -72,14 +71,8 @@ public class ContentsCrawlEngine {
 								image.select("img").attr("src", "/images/" +  board_id.toString() + "/" + filename);
 							}
 							
-							contents = html.toString();
+							contents = html.select("body").html();
 						}
-						
-						// TODO delete
-						org.jsoup.nodes.Document html = Jsoup.parse(
-								contents
-						);
-						contents = html.text();
 						
 						db.getCollection("article").updateOne(
 							new Document("_id", doc.getObjectId("_id")),

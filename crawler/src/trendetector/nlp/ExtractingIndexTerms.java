@@ -7,9 +7,14 @@ import kr.co.shineware.util.common.model.Pair;
 
 public class ExtractingIndexTerms {
 	public static Pair<List<Pair<String, String>>, List<Pair<String, String>>> getKeywords(List<Pair<String, String>> eojeolResult) {
-		/* 알수없는 단어(NA)와 외국어단어(SL)는 고유명사로 취급 */
+		/* 한 어절이 영문으로만 이루어진 경우 고유명사로 취급 */
+		if (eojeolResult.size() == 1 && eojeolResult.get(0).getSecond().equals("SL")) {
+			eojeolResult.get(0).setSecond("NNP");
+		}
+		
+		/* 알수없는 단어(NA)는 고유명사로 취급 */
 		for (Pair<String, String> wordMorph : eojeolResult) {
-			if (wordMorph.getSecond().equals("NA") || wordMorph.getSecond().equals("SL")) {
+			if (wordMorph.getSecond().equals("NA")) {
 				wordMorph.setSecond("NNP");
 			}
 		}

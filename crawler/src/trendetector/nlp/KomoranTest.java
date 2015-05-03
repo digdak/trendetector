@@ -26,7 +26,8 @@ public class KomoranTest {
 		for (;;) {
 			String str = scan.nextLine();
 			System.out.println("[NLP] " + str);
-			str = str.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`]", " @ ");
+			str = str.replaceAll("<", " <").replace(">", "> ");
+			str = str.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`|.]", " @ ");
 			
 			List<List<Pair<String, String>>> result = komoran.analyze(str);
 			
