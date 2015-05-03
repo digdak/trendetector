@@ -13,8 +13,8 @@ require('mongodb').MongoClient.connect('mongodb://localhost:27017/trendetector',
     mongodb = db;
 });
 
-var routes = require('./routes/index');
-var users = require('./routes/users');
+var model = require('./routes/model');
+var controller = require('./routes/controller');
 
 var app = express();
 
@@ -36,8 +36,9 @@ app.use(function(req, res, next){
     next();
 });
 
-app.use('/', routes);
-app.use('/users', users);
+
+app.use('/', model);
+app.use('/', controller);
 
 
 // catch 404 and forward to error handler
