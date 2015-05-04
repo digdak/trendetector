@@ -94,6 +94,11 @@ ul {
     margin: 0 5px 0 5px;
 }
 
+#pagination a.selected {
+    font-weight: bold;
+    font-size: 18px;
+}
+
 .control {
     height: 150px;  
     background:#aaa;
@@ -130,6 +135,14 @@ ul {
     font-size: 10pt;
 }
 
+.site_select ul li.unselected {
+    background: #eeeeee
+}
+
+.all_community {
+    background: #223322
+}
+
 .clien {
     background: #3D4881;
 }
@@ -144,4 +157,39 @@ ul {
 
 .dd {
     background: #A2A7BD;
+}
+.mp {
+    background: #FE5E00;
+}
+.bd {
+    background: #232734;
+}
+.pp {
+    background: #a5a5a5;
+}
+.rw {
+    background: #0861B6;
+}
+.ck {
+    background: #459F39;
+}
+
+/*#graph {
+    height: 150px;  
+    background:#bab;
+    padding: 10px 10px 10px 10px;
+    border-radius: 6px; 
+}*/
+
+#graph-container {
+    max-width: 400px;
+    height: 400px;
+    margin: auto;
+}
+
+#keyword_list {
+    height: 500px;  
+    background:#eeeeee;
+    padding: 10px 10px 10px 10px;
+    border-radius: 6px; 
 }
