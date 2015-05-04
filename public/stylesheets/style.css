@@ -64,6 +64,64 @@ fieldset {
     padding:0; margin:0;
 }
 
+ul {
+     margin: 0;
+     padding: 0;
+ }
+
+
 #pagination a  {
     margin: 0 5px 0 5px;
+}
+
+.control {
+    height: 150px;  
+    background:#aaa;
+    padding: 10px 10px 10px 10px;
+    border-radius: 6px; 
+}
+
+.site_select {
+    display: inline-block;
+    background-color: #FFF;
+    margin: 0 15px 0 0;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #FFF;
+    border-radius: 4px;
+}
+
+.site_select ul {
+    list-style: none;
+}
+
+.site_select ul li {
+    float: left;    
+    margin: 2px 2px 2px 2px;
+}
+
+.site_select ul li a {
+    display: inline-block;
+    height: 12px;
+    border-radius: 4px;
+    padding: 3px 3px 5px 3px;
+    color: #FFF;
+    margin: 2px 2px 2px 2px;
+    font-size: 10pt;
+}
+
+.clien {
+    background: #3D4881;
+}
+
+.ou {
+    background: #4D6C77;
+}
+
+.slr {
+    background: #438EDD;
+}
+
+.dd {
+    background: #A2A7BD;
 }
