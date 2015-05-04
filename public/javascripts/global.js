@@ -20,6 +20,26 @@ $(document).ready(function () {
 });
 
 // Functions =============================================================
+function makePagenation(max_page) {
+    for (var i = parseInt(page)-2; i < parseInt(page); i++) {
+        if (i <= 0)
+            continue;
+        $("#pagination").append("<a href='/list?page="+i+"'>"+i+"</a>");
+    }
+
+    $("#pagination").append("<a class='selected' href='/list?page="+page+"'>"+page+"</a>");    
+
+    for (var i = parseInt(page)+1; i < parseInt(page)+4 && i < max_page; i++) {
+        $("#pagination").append("<a href='/list?page="+i+"'>"+i+"</a>");
+    }
+
+    if(page == parseInt(max_page)) {
+        $("#next_page").remove();
+    } else if (page == 1) {
+        $("#previous_page").remove();
+    }
+
+}
 
 // Fill table with data
 function populateTable() {
@@ -33,6 +53,13 @@ function populateTable() {
     }
     // jQuery AJAX call for JSON
     $.getJSON('/article/list', query, function (data) {
+        // this variable declare on scripit DOM at layout.jade
+        // using for pagination
+        var total =  parseInt(data.totalcount);
+        var limit =  parseInt(data.limits);
+        var max_page = (total%limit == 0) ? total/limit : total/limit + 1;        
+        makePagenation(max_page);
+
         // /contents?community=CL&board_id=1&article_no=36747974
         // For each item in our JSON, add a table row and cells to the content string
         $.each(data.datas, function () {
