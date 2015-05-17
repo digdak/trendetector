@@ -13,7 +13,6 @@ require('mongodb').MongoClient.connect('mongodb://localhost:27017/trendetector',
     mongodb = db;
 });
 
-var model = require('./routes/model');
 var controller = require('./routes/controller');
 
 var app = express();
@@ -36,8 +35,6 @@ app.use(function(req, res, next){
     next();
 });
 
-
-app.use('/', model);
 app.use('/', controller);
 
 
