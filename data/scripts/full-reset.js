@@ -30,21 +30,21 @@ var rows =
 		community: 'CL',
 		name: '모두의공원',
 		url: 'http://www.clien.net/cs2/bbs/board.php?bo_table=park',
-		imagedown: true,
+		imagedown: false,
 		active: true
 	},
 	{
 		community: 'CL',
 		name: '새로운소식',
 		url: 'http://www.clien.net/cs2/bbs/board.php?bo_table=news',
-		imagedown: true,
+		imagedown: false,
 		active: true
 	},
 	{
 		community: 'SR',
 		name: '자유게시판',
 		url: 'http://www.slrclub.com/bbs/zboard.php?id=free',
-		imagedown: true,
+		imagedown: false,
 		active: true
 	},
 	{
