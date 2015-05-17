@@ -52,11 +52,16 @@ public class KeywordExtractionEngine {
 		MongoDatabase db = MongoDB.create();
 		
 		Document where = new Document();
-		where.append("contents", new Document("$exists", true));
+		Document whereContents = new Document();
+		whereContents.append("$exists", true);
+		whereContents.append("$not", new Document("$eq", false));
+		
+		where.append("contents", whereContents);
 		where.append("keywords", new Document("$exists", false));
 		
 		Document orderby = new Document("date", 1);
 
+		System.out.println(new Date());
 		while (true) {
 			try {
 				FindIterable<Document> iter = 
@@ -79,8 +84,8 @@ public class KeywordExtractionEngine {
 					
 					try {
 						contents = Jsoup.parse(contents).text();
-						contents = contents.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`|.]", " @ ");
-						subject = subject.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`|.]", " @ ");
+						contents = contents.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`|.|,]", " @ ");
+						subject = subject.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`|.|,]", " @ ");
 						List<List<Pair<String, String>>> result = null;
 						
 						result = komoran.analyze(subject);
