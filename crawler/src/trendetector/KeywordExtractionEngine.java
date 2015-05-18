@@ -10,7 +10,6 @@ import kr.co.shineware.nlp.komoran.core.analyzer.Komoran;
 import kr.co.shineware.util.common.model.Pair;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
 import org.jsoup.Jsoup;
 
 import trendetector.mongodb.MongoDB;
@@ -74,8 +73,6 @@ public class KeywordExtractionEngine {
 				}
 				
 				iter.forEach( (Document doc) -> {
-					ObjectId article_id = doc.getObjectId("_id");
-					Date date = doc.getDate("date");
 					String subject = doc.getString("subject");
 					String contents = doc.getString("contents");
 
@@ -106,6 +103,10 @@ public class KeywordExtractionEngine {
 										getStatus(true, false, subKeyword.getSecond())
 								));
 							}
+						}
+						
+						if (contents.length() > 30000) {
+							contents = contents.substring(0, 30000);
 						}
 						
 						result = komoran.analyze(contents);

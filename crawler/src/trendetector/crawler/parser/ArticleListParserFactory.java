@@ -230,7 +230,11 @@ class TodayHumorParser extends ArticleListParser {
 				Element font = item.select(".subject font").first();
 				String strReplies = ( font != null ? font.text() : "");
 				if (!strReplies.isEmpty()) {
-					article.setReplies(Integer.parseInt(strReplies.trim().replaceAll("[\\[\\]]", "")));
+					try{
+						article.setReplies(Integer.parseInt(strReplies.trim().replaceAll("[\\[\\]]", "")));
+					} catch (NumberFormatException nfe) {
+						article.setReplies(0);
+					}
 				}
 				
 				article.setHit(Integer.parseInt(item.select(".hits").text()));
