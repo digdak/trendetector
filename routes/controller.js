@@ -8,6 +8,52 @@ var model_article = require('../model/article.js');
 var router = express.Router();
 var LIMIT = 50;
 
+var Keyword = require('../models/keyword.js');
+
+router.get('/graph/nodes', function (req, res, next) {
+    Keyword.getAll(function (err, keywords) {        
+        if (err) return next(err);
+        // res.json(keywords);
+        res.render('keywords', {'keywords': keywords});
+    });
+});
+
+router.get('/graph/nodes_with_rel.json', function (req, res, next) {
+    Keyword.getAll(function (err, keywords) {        
+        if (err) return next(err);
+        
+        Keyword.getPairs(function (err, results) {        
+            if (err) return next(err);
+            res.json({keywords:keywords,relations:results});            
+        });
+        // res.render('keywords', {'keywords': keywords});
+    });
+});
+
+router.get('/graph/relations', function (req, res, next) {
+    Keyword.getPairs(function (err, results) {        
+        if (err) return next(err);
+        res.json(results);
+        // res.render('keywords', {'keywords': keywords});
+    });
+});
+
+router.get('/graph/nodes/:id', function (req, res, next) {
+    var node_id = req.params.id;
+    Keyword.get(node_id, function (err, keyword) {                
+        if (err) return next(err);
+        // res.json(keyword);
+        keyword.getFollowingAndOthers(function (err, following, others) {
+            if (err) return next(err);            
+            res.render('keyword', {
+                keyword: keyword,
+                following: following,
+                others: others
+            });
+        });
+        
+    });
+});
 
 /* GET home page. */
 router.get('/list', function (req, res, next) {
@@ -78,6 +124,5 @@ router.get('/keyword/list', function (req, res, next) {
         res.json(data);
     })(req.db);
 });
-
 
 module.exports = router;
