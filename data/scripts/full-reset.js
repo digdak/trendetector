@@ -19,6 +19,14 @@ var rows =
 	{
 		_id: 'DD',
 		name: '개드립'
+	},
+	{
+		_id: 'MP',
+		name: 'MLBPARK'
+	},
+	{
+		_id: 'BD',
+		name: '보배드림'
 	}
 ];
 db.community.insert(rows);
@@ -31,14 +39,14 @@ var rows =
 		name: '모두의공원',
 		url: 'http://www.clien.net/cs2/bbs/board.php?bo_table=park',
 		imagedown: true,
-		active: true
+		active: false
 	},
 	{
 		community: 'CL',
 		name: '새로운소식',
 		url: 'http://www.clien.net/cs2/bbs/board.php?bo_table=news',
 		imagedown: true,
-		active: true
+		active: false
 	},
 	{
 		community: 'SR',
@@ -51,13 +59,26 @@ var rows =
 		community: 'OU',
 		name: '베스트게시물',
 		url: 'http://www.todayhumor.co.kr/board/list.php?table=humorbest',
-		active: true
+		active: false
 	},
 	{
 		community: 'DD',
 		name: '개드립',
 		url: 'http://www.dogdrip.net/dogdrip',
+		active: false
+	},
+	{
+		community: 'MP',
+		name: 'BULLPEN',
+		url: 'http://mlbpark.donga.com/mbs/articleL.php?mbsC=bullpen2',
+		imagedown: true,
 		active: true
+	},
+	{
+		community: 'BD',
+		name: '자유게시판',
+		url: 'http://www.bobaedream.co.kr/list?code=freeb',
+		active: false
 	}
 ]
 db.board.insert(rows);
