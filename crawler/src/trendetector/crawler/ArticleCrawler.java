@@ -56,7 +56,7 @@ public class ArticleCrawler implements Runnable {
 				}
 				
 				for (Article article : articleList) {
-					if (now - article.getDate().getTime() > 24 * 60 * 60 * 1000) {
+					if (now - article.getDate().getTime() > 6 * 60 * 60 * 1000) {
 						break parserLoop;
 					}
 					

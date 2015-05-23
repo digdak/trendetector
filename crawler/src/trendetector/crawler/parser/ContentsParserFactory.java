@@ -32,7 +32,7 @@ public class ContentsParserFactory {
 				@Override
 				public String parse() throws IOException {
 					Document doc = new Document(this.getUrl());
-					doc.html(FileURL.getHtml(this.getUrl()));
+					doc.html(FileURL.getHtml(this.getUrl(), "UTF-8"));
 					
 					Elements contents = doc.select(".resContents");
 					contents.select(".signature").remove();	// 서명란 제거
@@ -51,7 +51,7 @@ public class ContentsParserFactory {
 				@Override
 				public String parse() throws IOException {
 					Document doc = new Document(this.getUrl());
-					doc.html(FileURL.getHtml(this.getUrl()));
+					doc.html(FileURL.getHtml(this.getUrl(), "UTF-8"));
 					
 					Elements contents = doc.select("#userct");
 					Elements uploadedImages = contents.select("img[alt]");
@@ -69,7 +69,7 @@ public class ContentsParserFactory {
 				@Override
 				public String parse() throws IOException {
 					Document doc = new Document(this.getUrl());
-					doc.html(FileURL.getHtml(this.getUrl()));
+					doc.html(FileURL.getHtml(this.getUrl(), "UTF-8"));
 					
 					Elements contents = doc.select(".viewContent");
 					
@@ -82,7 +82,7 @@ public class ContentsParserFactory {
 				@Override
 				public String parse() throws IOException {
 					Document doc = new Document(this.getUrl());
-					doc.html(FileURL.getHtml(this.getUrl()));
+					doc.html(FileURL.getHtml(this.getUrl(), "UTF-8"));
 					
 					Elements contents = doc.select("#article_1");
 					contents.select(".document_popup_menu").remove();	// 팝업메뉴 제거
@@ -91,7 +91,25 @@ public class ContentsParserFactory {
 					return Jsoup.clean(contents.html(), url, whitelist);
 				}
 			};
+		case "MP":
+			return new ContentsParser(url) {
+				@Override
+				public String parse() throws IOException {
+					Document doc = new Document(this.getUrl());
+					doc.html(FileURL.getHtml(this.getUrl(), "EUC-KR"));
+					
+					Element contents = doc.select(".G13 tbody div").get(0);	
+					Elements uploadedImages = contents.select("a[onclick] img");
+					
+					for (Element image : uploadedImages) {
+						image.attr("uploaded", "true");
+					}
+					
+					return Jsoup.clean(contents.html(), url, whitelist);
+				}
+			};
 		}
+			
 		
 		return null;
 	}
