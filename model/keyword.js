@@ -34,3 +34,31 @@ exports.get_keyword_info = function (next) {
         });
     }
 }
+
+exports.get_article_ids_by_keyword = function (next) {
+    return function (db, keyword, hour) {
+        if(keyword === undefined) {
+            return next(undefined);
+        }
+
+        var where = {
+            "keywords.keyword": keyword
+        };
+
+        if (hour !== undefined) {
+            var date = new Date();
+            date.setHours(date.getHours() - hour);
+            where.date = {
+                "$gt": date
+            };
+        }
+
+        db.collection('article').find(where, { _id: true }).toArray(function (err, article_list) {
+            if (err) {
+                throw err;
+            }
+
+            next(article_list);
+        });
+    }
+}
