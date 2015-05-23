@@ -62,3 +62,17 @@ exports.get_article_ids_by_keyword = function (next) {
         });
     }
 }
+
+exports.get_keywords_batch_times_by_term = function (next) {
+    return function (db, term) {
+        if (term === undefined || term === '') {
+            throw new Error('time not Valid!');
+        }
+        db.collection('stastics').findOne({ _id: new ObjectId(term) }, {}, function (err, batch_times) {
+            if (err) {
+                throw err;
+            }
+            next(batch_times);
+        });
+    }
+}

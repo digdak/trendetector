@@ -18,16 +18,38 @@ router.get('/graph/nodes', function (req, res, next) {
     });
 });
 
-router.get('/graph/nodes_with_rel.json', function (req, res, next) {
-    Keyword.getAll(function (err, keywords) {        
+router.get('/graph/nodes_with_rel/:term.json', function (req, res, next) {
+    var term = req.params.term;
+    // Check is there graph on time 
+    // if not make graph,
+    Keyword.getAll(term, function (err, keywords) {        
         if (err) return next(err);
         
-        Keyword.getPairs(function (err, results) {        
-            if (err) return next(err);
-            res.json({keywords:keywords,relations:results});            
-        });
+        if (keywords.length != 0) {
+            // get orgin graph from db
+            Keyword.getPairs(function (err, results) {        
+                if (err) return next(err);
+                res.json({keywords:keywords,relations:results});            
+            });
+        } else {
+            // make new graph
+            model_keyword.get_article_ids_by_keyword(function(arr) {
+                Keyword.getAll(function (err, keywords) {        
+                    if (err) return next(err);
+                    
+                    Keyword.getPairs(function (err, results) {        
+                        if (err) return next(err);
+                        res.json({keywords:keywords,relations:results});            
+                    });
+                    // res.render('keywords', {'keywords': keywords});
+                });
+            })(req.db, keyword, term);  // HOUR FROM NOW
+        }
         // res.render('keywords', {'keywords': keywords});
     });
+
+    
+    
 });
 
 router.get('/graph/relations', function (req, res, next) {
