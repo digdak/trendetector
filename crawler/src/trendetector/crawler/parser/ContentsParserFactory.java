@@ -123,6 +123,24 @@ public class ContentsParserFactory {
 					return Jsoup.clean(bodyCont.html() + "<br></br>" +  print_area2.html(), url, whitelist);
 				}
 			};
+		case "PP":
+			return new ContentsParser(url) {
+				@Override
+				public String parse() throws IOException {
+					Document doc = new Document(this.getUrl());
+					doc.html(FileURL.getHtml(this.getUrl(), "EUC-KR"));
+					
+					Element contents = doc.select(".han").get(2);
+					Elements uploadedImages = contents.select("#dqResizedImage0");
+					
+					for (Element image : uploadedImages) {
+						image.attr("uploaded", "true");
+						image.attr("width", "880");
+					}
+					
+					return Jsoup.clean(contents.html(), url, whitelist);
+				}
+			};
 		}
 			
 		

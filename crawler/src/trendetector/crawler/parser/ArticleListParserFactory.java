@@ -33,6 +33,8 @@ public class ArticleListParserFactory {
 			return new MLBPARKParser(url);
 		case "BD":
 			return new BobaeDreamParser(url);
+		case "PP":
+			return new PpomPpuParser(url);
 		}
 		
 		return null;
@@ -450,7 +452,6 @@ class BobaeDreamParser extends ArticleListParser {
 	public BobaeDreamParser(String url) {
 		super(url);
 		this.lastDate = null;
-		
 		this.strToDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 		this.dateToStrFormat = new SimpleDateFormat("yyyy/MM/dd");
 	}
@@ -458,8 +459,6 @@ class BobaeDreamParser extends ArticleListParser {
 	@Override
 	public List<Article> parse(ArticleParseError parseError) throws IOException {
 		List<Article> articleList = new ArrayList<Article>();
-
-		
 		Document doc = new Document(this.getUrl());
 		doc.html(FileURL.getHtml(this.getUrl(), "UTF-8"));
 		Elements items = doc.select(".cList table tbody tr[itemtype]");
@@ -507,9 +506,78 @@ class BobaeDreamParser extends ArticleListParser {
 				article.setVotes(Integer.parseInt(item.select(".recomm").text()));
 				article.setHit(Integer.parseInt(item.select(".count").text()));
 				
+				articleList.add(article);
 				
+			} catch (Exception e) {
+				parseError.callback(e, article);
+			}
+		}
+		return articleList;
+	}
+}
 
+
+
+class PpomPpuParser extends ArticleListParser {
+	private Whitelist whitelist;	// 작성자가 text인 경우와 img인 경우 처리
+	private SimpleDateFormat strToDateFormat;	// String -> Date 변경 포멧
+		
+	public PpomPpuParser(String url) {
+		super(url);
+		this.whitelist = new Whitelist();
+		this.whitelist.addAttributes("img", "src");
+		this.whitelist.addProtocols("img", "src", "http", "https");
+		this.strToDateFormat = new SimpleDateFormat("yy.MM.dd HH:mm:ss");
+	}
+
+	public List<Article> parse(ArticleParseError parseError) throws IOException {
+		List<Article> articleList = new ArrayList<Article>();
+		Document doc = new Document(this.getUrl());
+		doc.html(FileURL.getHtml(this.getUrl(), "EUC-KR"));
+		Elements items = doc.select("#revolution_main_table tbody tr");
+		
+		/* set Next Page URL */
+		try {
+			int page = Integer.parseInt(doc.select(".page_inert").text());
+			page++;
+			this.setNextPageUrl(URLStringUtil.urlAddQuery(this.getUrl(), "page", page + ""));
+		} catch (Exception e) {
+			this.setNextPageUrl(null);
+		}
+		
+		for (Element item : items) {
+			Article article = new Article();
+			try {
 				
+				if (!(item.attr("class").equals("list0") || 
+						item.attr("class").equals("list1"))) {
+					continue;
+				}
+
+				Elements td = item.select("td");
+				
+				String strDate = td.get(3).attr("title");
+				Date date = strToDateFormat.parse(strDate);
+				article.setDate(date);
+				
+				String url = td.get(2).select("a").attr("abs:href");
+				article.setUrl(url);
+				
+				article.setArticleNo(Integer.parseInt(td.get(0).text()));
+				article.setSubject(item.select(".list_title").text());
+				article.setAuthor(Jsoup.clean(item.select(".list_name a").html(), Whitelist.none().addAttributes("img", "src", "style")));
+				article.setHit(Integer.parseInt(td.get(5).text()));
+				
+				String strReplies = item.select(".list_comment2").text();
+				if (!strReplies.isEmpty()) {
+					article.setReplies(Integer.parseInt(strReplies));
+				}
+				
+				String strVotes = td.get(4).text().split("-")[0].trim();
+				if(!strVotes.isEmpty()) {
+					article.setVotes(Integer.parseInt(strVotes));
+				}
+
 				
 				articleList.add(article);
 				

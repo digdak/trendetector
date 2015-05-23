@@ -27,6 +27,10 @@ var rows =
 	{
 		_id: 'BD',
 		name: '보배드림'
+	},
+	{
+		_id: 'PP',
+		name: '뽐뿌'
 	}
 ];
 db.community.insert(rows);
@@ -78,6 +82,13 @@ var rows =
 		community: 'BD',
 		name: '자유게시판',
 		url: 'http://www.bobaedream.co.kr/list?code=freeb',
+		active: false
+	},
+	{
+		community: 'PP',
+		name: '자유게시판',
+		url: 'http://www.ppomppu.co.kr/zboard/zboard.php?id=freeboard',
+		imagedown: true,
 		active: true
 	}
 ]
