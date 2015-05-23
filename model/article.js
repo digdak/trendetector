@@ -1,7 +1,7 @@
 /**
  * Created by 은화 on 2015-05-17.
  */
-
+var ObjectId = require('mongodb').ObjectId;
 
 exports.get_article_by_id = function (next) {
     return function (db, article_id ) {
