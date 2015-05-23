@@ -1,0 +1,15 @@
+h1 #{keyword.keyword}
+
+    p
+        a(href='/graph/nodes') Back to keyword list
+
+    if following.length
+        p #{keyword.keyword} is following #{following.length} keywords:
+        // TODO should say 'keyword' if only one! ;)
+        ul.keywords
+            for other in following
+                li.keyword
+                        a(href='/graph/nodes/#{other.id}') #{other.rank}. #{other.keyword}
+    else
+        p #{keyword.keyword} isn't following anyone currently.
+   
