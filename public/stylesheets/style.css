@@ -145,3 +145,16 @@ ul {
 .dd {
     background: #A2A7BD;
 }
+
+/*#graph {
+    height: 150px;  
+    background:#bab;
+    padding: 10px 10px 10px 10px;
+    border-radius: 6px; 
+}*/
+
+#graph-container {
+    max-width: 400px;
+    height: 400px;
+    margin: auto;
+}

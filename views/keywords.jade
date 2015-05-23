@@ -1,0 +1,10 @@
+h1 Keywords
+
+if keywords.length
+    p Here are the current keywords:
+    ul.keywords
+        for keyword in keywords
+            li.keyword
+                a(href='/graph/nodes/#{keyword.id}') #{keyword.keyword}
+else
+    p There are no keywords currently.

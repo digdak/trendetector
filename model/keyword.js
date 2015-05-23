@@ -34,3 +34,61 @@ exports.get_keyword_info = function (next) {
         });
     }
 }
+
+exports.get_article_ids_by_keyword = function (next) {
+    return function (db, keyword, hour) {
+        if(keyword === undefined) {
+            return next(undefined);
+        }
+
+        var where = {
+            "keywords.keyword": keyword
+        };
+
+        if (hour !== undefined) {
+            var date = new Date();
+            date.setHours(date.getHours() - hour);
+            where.date = {
+                "$gt": date
+            };
+        }
+
+        db.collection('article').find(where, { _id: true }).toArray(function (err, article_list) {
+            if (err) {
+                throw err;
+            }
+
+            next(article_list);
+        });
+    }
+}
+
+exports.get_keywords = function (next) {
+    return function (db, hour) {
+        db.collection('statistics.batch_log').findOne({ _id: hour }, {}, function (err, doc) {
+            if (err) {
+                throw err;
+            }
+
+            if (doc === undefined) {
+                return next(undefined);
+            }
+
+            if (doc.batch_time === undefined) {
+                return next(undefined);
+            }
+
+            db.collection('keyword_' + hour).find().sort({rank: 1}).toArray(function (err, keyword_list) {
+                if (err) {
+                    throw err;
+                }
+
+                var retVal = {};
+                retVal.batch_time = doc.batch_time;
+                retVal.keywords = keyword_list;
+
+                next(retVal);
+            });
+        });
+    }
+}
