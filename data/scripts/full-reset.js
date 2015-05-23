@@ -38,15 +38,15 @@ var rows =
 		community: 'CL',
 		name: '모두의공원',
 		url: 'http://www.clien.net/cs2/bbs/board.php?bo_table=park',
-		imagedown: true,
-		active: false
+		imagedown: false,
+		active: true
 	},
 	{
 		community: 'CL',
 		name: '새로운소식',
 		url: 'http://www.clien.net/cs2/bbs/board.php?bo_table=news',
-		imagedown: true,
-		active: false
+		imagedown: false,
+		active: true
 	},
 	{
 		community: 'SR',
@@ -209,8 +209,9 @@ db.system.js.save({
 			return retVal;
 		};
 
+		var now = new ISODate();
 		var date = new ISODate();
-		date.setHours(date.getHours() - before);
+		date.setHours(now.getHours() - before);
 
 		db.article.mapReduce(map, reduce, {
 			out: { replace: strCollection },
@@ -276,6 +277,16 @@ db.system.js.save({
 			return { ok: false, result: result };
 		}
 
+		var result = db.statistics.batch_log.save({
+			_id: hour,
+			batch_time: now
+		});
+		if (result.nMatched == 0 
+		&& result.nUpserted == 0 
+		&& result.nModified == 0) {
+			return { ok: false, result: result };
+		}
+		
 		return { ok: true };
 	}
 });
