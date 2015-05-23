@@ -91,6 +91,7 @@ public class ContentsParserFactory {
 					return Jsoup.clean(contents.html(), url, whitelist);
 				}
 			};
+			
 		case "MP":
 			return new ContentsParser(url) {
 				@Override
@@ -106,6 +107,20 @@ public class ContentsParserFactory {
 					}
 					
 					return Jsoup.clean(contents.html(), url, whitelist);
+				}
+			};
+			
+		case "BD":
+			return new ContentsParser(url) {
+				@Override
+				public String parse() throws IOException {
+					Document doc = new Document(this.getUrl());
+					doc.html(FileURL.getHtml(this.getUrl(), "UTF-8"));
+					
+					Elements bodyCont = doc.select(".bodyCont");
+					Elements print_area2 = doc.select("#print_area2");
+					
+					return Jsoup.clean(bodyCont.html() + "<br></br>" +  print_area2.html(), url, whitelist);
 				}
 			};
 		}

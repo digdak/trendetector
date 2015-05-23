@@ -72,13 +72,13 @@ var rows =
 		name: 'BULLPEN',
 		url: 'http://mlbpark.donga.com/mbs/articleL.php?mbsC=bullpen2',
 		imagedown: true,
-		active: true
+		active: false
 	},
 	{
 		community: 'BD',
 		name: '자유게시판',
 		url: 'http://www.bobaedream.co.kr/list?code=freeb',
-		active: false
+		active: true
 	}
 ]
 db.board.insert(rows);
