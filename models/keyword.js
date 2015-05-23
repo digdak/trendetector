@@ -96,9 +96,9 @@ Keyword.get = function (id, callback) {
     });
 };
 
-Keyword.getAll = function (callback) {
+Keyword.getAll = function (time, callback) {
     var query = [
-        'MATCH (keyword:Keyword)',
+        'MATCH (keyword:Keyword {time:'+time+'})',
         'RETURN keyword',
     ].join('\n');
 

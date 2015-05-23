@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var mongodb;
-require('mongodb').MongoClient.connect('mongodb://localhost:27017/trendetector', function (err, db) {
+require('mongodb').MongoClient.connect('mongodb://59.16.177.153:12312/trendetector', function (err, db) {
     if (err) {
         throw err;
     }
