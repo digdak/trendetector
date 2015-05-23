@@ -31,6 +31,8 @@ public class ArticleListParserFactory {
 			return new DogDripParser(url);
 		case "MP":
 			return new MLBPARKParser(url);
+		case "BD":
+			return new BobaeDreamParser(url);
 		}
 		
 		return null;
@@ -382,7 +384,6 @@ class MLBPARKParser extends ArticleListParser {
 				if (!Pattern.matches("[0-2][0-9]:[0-5][0-9]:[0-5][0-9]", strDate)) {
 					continue;
 				}
-			
 				
 				article.setArticleNo(Integer.parseInt(tds.get(0).text()));
 				article.setSubject(tds.get(1).select("a").get(0).text());
@@ -440,3 +441,84 @@ class MLBPARKParser extends ArticleListParser {
 	
 }
 
+
+class BobaeDreamParser extends ArticleListParser {
+	private Date lastDate;	// 마지막 파싱한 글의 시간
+	private SimpleDateFormat strToDateFormat;	// String -> Date 변경 포멧
+	private SimpleDateFormat dateToStrFormat;	// Date -> String 변경 포멧
+	
+	public BobaeDreamParser(String url) {
+		super(url);
+		this.lastDate = null;
+		
+		this.strToDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+		this.dateToStrFormat = new SimpleDateFormat("yyyy/MM/dd");
+	}
+
+	@Override
+	public List<Article> parse(ArticleParseError parseError) throws IOException {
+		List<Article> articleList = new ArrayList<Article>();
+
+		
+		Document doc = new Document(this.getUrl());
+		doc.html(FileURL.getHtml(this.getUrl(), "UTF-8"));
+		Elements items = doc.select(".cList table tbody tr[itemtype]");
+		
+		/* set Next Page URL */
+		try {
+			int page = Integer.parseInt(doc.select(".current").text());
+			page++;
+			this.setNextPageUrl(URLStringUtil.urlAddQuery(this.getUrl(), "page", page + ""));
+		} catch (Exception e) {
+			this.setNextPageUrl(null);
+		}
+		
+		
+		for (Element item : items) {
+			Article article = new Article();
+			
+			try {
+				/* 보배드림은 오늘 까지의 글은 작성일을 HH:mm로 표현하는데,
+				 * 다른 패턴인 경우 예외처리 */
+				String strDate = item.select(".date").text();
+				if (!Pattern.matches("[0-2][0-9]:[0-5][0-9]", strDate)) {
+					continue;
+				}
+				Date now = new Date();
+				Date date = strToDateFormat.parse(dateToStrFormat.format(now) + " " + strDate);
+				article.setDate(date);
+				
+				article.setArticleNo(Integer.parseInt(item.select(".num01").text()));
+				article.setSubject(item.select(".pl14 .bsubject").text());
+				article.setAuthor(item.select(".author02 .author").text());
+
+				
+				/* 댓글 수 추출 시 제거되는 태그이므로 반드시 먼저 해야 함 */
+				article.setUrl(item.select(".pl14 a").get(0).attr("abs:href"));
+				
+				/* 댓글 수를 추출하기 위해 제목에서 a 태그로 감싸진 부분을 제거하고 파싱 */
+				String strReplies = item.select(".totreply").text();
+				if(!strReplies.isEmpty()) {
+					article.setReplies(Integer.parseInt(strReplies));	
+				} else {
+					article.setReplies(0);
+				}
+				
+				article.setVotes(Integer.parseInt(item.select(".recomm").text()));
+				article.setHit(Integer.parseInt(item.select(".count").text()));
+				
+				
+
+				
+				
+				articleList.add(article);
+				
+			} catch (Exception e) {
+				parseError.callback(e, article);
+			}
+		}
+		
+		return articleList;
+	}
+	
+}
