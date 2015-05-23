@@ -34,15 +34,15 @@ public class ContentsParserFactory {
 					Document doc = new Document(this.getUrl());
 					doc.html(FileURL.getHtml(this.getUrl()));
 					
-					Elements content = doc.select(".resContents");
-					content.select(".signature").remove();	// 서명란 제거
-					Elements uploadedImages = content.select(".attachedImage img");
+					Elements contents = doc.select(".resContents");
+					contents.select(".signature").remove();	// 서명란 제거
+					Elements uploadedImages = contents.select(".attachedImage img");
 					
 					for (Element image : uploadedImages) {
 						image.attr("uploaded", "true");
 					}
 					
-					return Jsoup.clean(content.html(), url, whitelist);
+					return Jsoup.clean(contents.html(), url, whitelist);
 				}
 			};
 			
@@ -53,14 +53,14 @@ public class ContentsParserFactory {
 					Document doc = new Document(this.getUrl());
 					doc.html(FileURL.getHtml(this.getUrl()));
 					
-					Elements content = doc.select("#userct");
-					Elements uploadedImages = content.select("img[alt]");
+					Elements contents = doc.select("#userct");
+					Elements uploadedImages = contents.select("img[alt]");
 					
 					for (Element image : uploadedImages) {
 						image.attr("uploaded", "true");
 					}
 					
-					return Jsoup.clean(content.html(), url, whitelist);
+					return Jsoup.clean(contents.html(), url, whitelist);
 				}
 			};
 			
@@ -71,9 +71,9 @@ public class ContentsParserFactory {
 					Document doc = new Document(this.getUrl());
 					doc.html(FileURL.getHtml(this.getUrl()));
 					
-					Elements content = doc.select(".viewContent");
+					Elements contents = doc.select(".viewContent");
 					
-					return Jsoup.clean(content.html(), url, whitelist);
+					return Jsoup.clean(contents.html(), url, whitelist);
 				}
 			};
 			
@@ -84,10 +84,11 @@ public class ContentsParserFactory {
 					Document doc = new Document(this.getUrl());
 					doc.html(FileURL.getHtml(this.getUrl()));
 					
-					Elements content = doc.select("#article_1");
-					content.select(".document_popup_menu").remove();	// 팝업메뉴 제거
-					content.select("wgtRv").remove();	// 추천 비추천 버튼 제거
-					return Jsoup.clean(content.html(), url, whitelist);
+					Elements contents = doc.select("#article_1");
+					contents.select(".document_popup_menu").remove();	// 팝업메뉴 제거
+					contents.select("wgtRv").remove();	// 추천 비추천 버튼 제거
+					
+					return Jsoup.clean(contents.html(), url, whitelist);
 				}
 			};
 		}

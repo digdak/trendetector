@@ -11,5 +11,9 @@
 	<classpathentry kind="lib" path="crawler/lib/httpmime-4.3.4.jar"/>
 	<classpathentry kind="lib" path="crawler/lib/jsoup-1.8.1.jar"/>
 	<classpathentry kind="lib" path="crawler/lib/mongo-java-driver-3.0.0.jar"/>
+	<classpathentry kind="lib" path="crawler/lib/komoran-2.4-e.jar"/>
+	<classpathentry kind="lib" path="crawler/lib/org.snu.ids.ha.jar"/>
+	<classpathentry kind="lib" path="crawler/lib/shineware-common-2.0.jar"/>
+	<classpathentry kind="lib" path="crawler/lib/shineware-ds-1.0.jar"/>
 	<classpathentry kind="output" path="crawler/classes"/>
 </classpath>
