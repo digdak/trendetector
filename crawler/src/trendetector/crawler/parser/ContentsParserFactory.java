@@ -141,6 +141,30 @@ public class ContentsParserFactory {
 					return Jsoup.clean(contents.html(), url, whitelist);
 				}
 			};
+		case "RW":
+			return new ContentsParser(url) {
+				@Override
+				public String parse() throws IOException {
+					Document doc = new Document(this.getUrl());
+					doc.html(FileURL.getHtml(this.getUrl(), "UTF-8"));
+					
+					Elements contents = doc.select(".tx-content-container");
+										
+					return Jsoup.clean(contents.html(), url, whitelist);
+				}
+			};
+		case "CK":
+			return new ContentsParser(url) {
+				@Override
+				public String parse() throws IOException {
+					Document doc = new Document(this.getUrl());
+					doc.html(FileURL.getHtml(this.getUrl(), "UTF-8"));
+					
+					Elements contents = doc.select("#articleBody");
+										
+					return Jsoup.clean(contents.html(), url, whitelist);
+				}
+			};
 		}
 			
 		
