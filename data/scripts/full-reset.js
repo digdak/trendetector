@@ -31,6 +31,14 @@ var rows =
 	{
 		_id: 'PP',
 		name: '뽐뿌'
+	},
+	{
+		_id: 'RW',
+		name: '루리웹'
+	},
+	{
+		_id: 'CK',
+		name: '82cook'
 	}
 ];
 db.community.insert(rows);
@@ -63,32 +71,44 @@ var rows =
 		community: 'OU',
 		name: '베스트게시물',
 		url: 'http://www.todayhumor.co.kr/board/list.php?table=humorbest',
-		active: false
+		active: true
 	},
 	{
 		community: 'DD',
 		name: '개드립',
 		url: 'http://www.dogdrip.net/dogdrip',
-		active: false
+		active: true
 	},
 	{
 		community: 'MP',
 		name: 'BULLPEN',
 		url: 'http://mlbpark.donga.com/mbs/articleL.php?mbsC=bullpen2',
 		imagedown: true,
-		active: false
+		active: true
 	},
 	{
 		community: 'BD',
 		name: '자유게시판',
 		url: 'http://www.bobaedream.co.kr/list?code=freeb',
-		active: false
+		active: true
 	},
 	{
 		community: 'PP',
 		name: '자유게시판',
 		url: 'http://www.ppomppu.co.kr/zboard/zboard.php?id=freeboard',
 		imagedown: true,
+		active: true
+	},
+	{
+		community: 'RW',
+		name: '유머게시판',
+		url: 'http://bbs2.ruliweb.daum.net/gaia/do/ruliweb/default/community/325/list?bbsId=G005&pageIndex=1&itemId=143',
+		active: true
+	},
+	{
+		community: 'CK',
+		name: '자유게시판',
+		url: 'http://www.82cook.com/entiz/enti.php?bn=15',
 		active: true
 	}
 ]

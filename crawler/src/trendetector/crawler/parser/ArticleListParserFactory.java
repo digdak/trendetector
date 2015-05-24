@@ -35,8 +35,11 @@ public class ArticleListParserFactory {
 			return new BobaeDreamParser(url);
 		case "PP":
 			return new PpomPpuParser(url);
+		case "RW":
+			return new RuliwebParser(url);
+		case "CK":
+			return new cookParser(url);
 		}
-		
 		return null;
 	}
 	
@@ -553,6 +556,9 @@ class PpomPpuParser extends ArticleListParser {
 						item.attr("class").equals("list1"))) {
 					continue;
 				}
+				if (!item.select("strike").isEmpty()) {
+					continue;
+				}
 
 				Elements td = item.select("td");
 				
@@ -578,6 +584,144 @@ class PpomPpuParser extends ArticleListParser {
 					article.setVotes(Integer.parseInt(strVotes));
 				}
 
+				
+				articleList.add(article);
+				
+			} catch (Exception e) {
+				parseError.callback(e, article);
+			}
+		}
+		
+		return articleList;
+	}
+	
+}
+
+
+
+class RuliwebParser extends ArticleListParser {
+	private SimpleDateFormat strToDateFormat;	// String -> Date 변경 포멧
+	private SimpleDateFormat dateToStrFormat;	// Date -> String 변경 포멧
+		
+	public RuliwebParser(String url) {
+		super(url);
+		this.strToDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+		this.dateToStrFormat = new SimpleDateFormat("yyyy/MM/dd");
+	}
+
+	public List<Article> parse(ArticleParseError parseError) throws IOException {
+		List<Article> articleList = new ArrayList<Article>();
+		Document doc = new Document(this.getUrl());
+		doc.html(FileURL.getHtml(this.getUrl(), "UTF-8"));
+		Elements items = doc.select(".tbl tbody tr");
+		Elements removes = items.select(".emph");
+		items.removeAll(removes);
+		
+		/* set Next Page URL */
+		try {
+			Elements paging = doc.select(".paging_comm .num:has(.ir_pm)");
+			int page = Integer.parseInt(paging.html().split("</span>")[1]);
+			page++;
+			this.setNextPageUrl(URLStringUtil.urlAddQuery(this.getUrl(), "pageIndex", page + ""));
+		} catch (Exception e) {
+			this.setNextPageUrl(null);
+		}
+		
+		for (Element item : items) {
+			Article article = new Article();
+			try {
+
+				/* 루리웹은 작성일을 HH:mm로 표현하는데,
+				 * 다른 패턴인 경우 예외처리 */
+				String strDate = item.select(".time").text();
+				if (!Pattern.matches("[0-2][0-9]:[0-5][0-9]", strDate)) {
+					continue;
+				}
+				Date now = new Date();
+				Date date = strToDateFormat.parse(dateToStrFormat.format(now) + " " + strDate);
+				article.setDate(date);
+				
+				Elements subject = item.select(".subject a");
+				article.setArticleNo(Integer.parseInt(subject.attr("id").split("_")[1]));
+				article.setSubject(subject.attr("title"));
+				article.setUrl(subject.attr("abs:href"));
+				
+				String strReplies = item.select(".subject .num_reply .num").text();
+				if (!strReplies.isEmpty()) {
+					try{
+						article.setReplies(Integer.parseInt(strReplies));
+					} catch (NumberFormatException nfe) {
+						article.setReplies(0);
+					}
+				}
+				
+				article.setAuthor(item.select(".writer").text());
+				article.setHit(Integer.parseInt(item.select(".hit").text()));
+				
+				String strVotes = item.select(".recomd").text();
+				if(!strVotes.isEmpty()) {
+					article.setVotes(Integer.parseInt(strVotes));
+				}
+				
+				articleList.add(article);
+				
+			} catch (Exception e) {
+				parseError.callback(e, article);
+			}
+		}
+		
+		return articleList;
+	}
+	
+}
+
+
+class cookParser extends ArticleListParser {
+	private SimpleDateFormat strToDateFormat;	// String -> Date 변경 포멧
+		
+	public cookParser(String url) {
+		super(url);
+		this.strToDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	}
+
+	public List<Article> parse(ArticleParseError parseError) throws IOException {
+		List<Article> articleList = new ArrayList<Article>();
+		Document doc = new Document(this.getUrl());
+		doc.html(FileURL.getHtml(this.getUrl(), "UTF-8"));
+		Elements items = doc.select("#column2 #list_table #bbs tbody tr:not(.noticeList)");
+		
+		/* set Next Page URL */
+		try {
+			this.setNextPageUrl(doc.select(".selected + a").attr("abs:href"));
+		} catch (Exception e) {
+			this.setNextPageUrl(null);
+		}
+		
+		for (Element item : items) {
+			Article article = new Article();
+			try {
+				Elements td = item.select("td");
+				
+				article.setArticleNo(Integer.parseInt(td.get(0).text()));
+				article.setSubject(td.get(1).select("a").text());
+				
+				String strReplies = td.get(1).select("em").text();
+				if (!strReplies.isEmpty()) {
+					try{
+						article.setReplies(Integer.parseInt(strReplies));
+					} catch (NumberFormatException nfe) {
+						article.setReplies(0);
+					}
+				}
+				
+				article.setUrl(td.get(1).select("a").attr("abs:href"));
+				article.setAuthor(td.get(2).text());
+				String strDate = td.get(3).attr("title");
+				Date date = strToDateFormat.parse(strDate);
+				article.setDate(date);
+				
+				
+				article.setHit(Integer.parseInt(td.get(4).text().replace(",", "")));
 				
 				articleList.add(article);
 				
