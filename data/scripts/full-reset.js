@@ -185,8 +185,18 @@ db.system.js.save({
 				retVal.ntf += doc.ntf;
 				retVal.cnt += doc.cnt;
 			});
+
+			if (ntfmax < retVal.ntf) {
+				ntfmax = retVal.ntf;
+			}
+
 			return retVal;
 		};
+
+		var finalizeF = function (key, reduceVal) {
+			reduceVal.ntf = reduceVal.ntf / ntfmax;
+			return reduceVal;
+		}
 
 		var now = new ISODate();
 		var date = new ISODate();
@@ -196,7 +206,11 @@ db.system.js.save({
 			out: { replace: strCollection },
 			query: {
 				keywords: { $exists: true, $not: { $eq: false } },
-				date: { $gt: date }
+				date: { $gt: date },
+				finalize: finalizeF,
+				scope: {
+					ntfmax: 0
+				}
 			}
 		});
 
