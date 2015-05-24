@@ -125,4 +125,15 @@ router.get('/keyword/list', function (req, res, next) {
     })(req.db);
 });
 
+router.get('/community/list', function (req, res) {
+    req.db.collection('community').find().toArray(
+        function (err, community_list) {
+            if (err) {
+                throw err;
+            }
+            res.json(community_list);
+        }
+    );
+});
+
 module.exports = router;

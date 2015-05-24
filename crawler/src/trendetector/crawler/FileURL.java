@@ -47,13 +47,13 @@ public class FileURL {
 		os.close();
 	}
 	
-	public static String getHtml(String url) throws  IOException {
+	public static String getHtml(String url, String charset) throws  IOException {
 		HttpGet get = new HttpGet(url);
 		get.addHeader("Referer", url);
 		HttpResponse res = httpClient.execute(get);
 		
 		StringBuffer sb = new StringBuffer();
-		InputStreamReader is = new InputStreamReader(res.getEntity().getContent(), "UTF-8");
+		InputStreamReader is = new InputStreamReader(res.getEntity().getContent(), charset);
 		BufferedReader br = new BufferedReader(is);
 		String readLine = null;
 		
