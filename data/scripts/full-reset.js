@@ -258,11 +258,12 @@ db.system.js.save({
 			out: { replace: strCollection },
 			query: {
 				keywords: { $exists: true, $not: { $eq: false } },
-				date: { $gt: date },
-				finalize: finalizeF,
-				scope: {
-					ntfmax: 0
-				}
+				date: { $gt: date }
+				
+			},
+			finalize: finalizeF,
+			scope: {
+				ntfmax: 0
 			}
 		});
 
@@ -278,7 +279,7 @@ db.system.js.save({
 			}
 
 			var idf = Math.log(totalcnt / (kcnt + 1));
-			var ntfidf = (Math.log(doc.value.ntf) + 1.0) * idf;
+			var ntfidf = (doc.value.ntf + 1.0) * (idf + 1.0);
 			bulkUpdate.find({ _id: doc._id }).updateOne({
 				$set: { "value.ntfidf": ntfidf }
 			});
