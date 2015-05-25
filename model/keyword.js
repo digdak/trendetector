@@ -78,11 +78,13 @@ exports.get_keywords = function (next) {
                 return next(undefined);
             }
 
-            db.collection('keyword_' + hour).find().sort({rank: 1}).limit(50).toArray(function (err, keyword_list) {
-                if (err) {
-                    throw err;
-                }
-                next(doc.batch_time, keyword_list);
+            db.collection('keyword_' + hour)
+                .find({rank: {$exists: true}})
+                .sort({rank: 1}).limit(50).toArray(function (err, keyword_list) {
+                    if (err) {
+                        throw err;
+                    }
+                    next(doc.batch_time, keyword_list);
             });
         });
     }
