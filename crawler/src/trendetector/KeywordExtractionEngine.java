@@ -92,14 +92,14 @@ public class KeywordExtractionEngine {
 							
 							for (Pair<String, String> mainKeyword : keys.getFirst()) {
 								words.add(new Pair<String, Byte>(
-										mainKeyword.getFirst(), 
+										mainKeyword.getFirst().trim(), 
 										getStatus(true, true, mainKeyword.getSecond())
 								));
 							}
 							
 							for (Pair<String, String> subKeyword : keys.getSecond()) {
 								words.add(new Pair<String, Byte>(
-										subKeyword.getFirst(), 
+										subKeyword.getFirst().trim(), 
 										getStatus(true, false, subKeyword.getSecond())
 								));
 							}
@@ -116,14 +116,14 @@ public class KeywordExtractionEngine {
 							
 							for (Pair<String, String> mainKeyword : keys.getFirst()) {
 								words.add(new Pair<String, Byte>(
-										mainKeyword.getFirst(), 
+										mainKeyword.getFirst().trim(), 
 										getStatus(false, true, mainKeyword.getSecond())
 								));
 							}
 							
 							for (Pair<String, String> subKeyword : keys.getSecond()) {
 								words.add(new Pair<String, Byte>(
-										subKeyword.getFirst(), 
+										subKeyword.getFirst().trim(), 
 										getStatus(false, false, subKeyword.getSecond())
 								));
 							}
