@@ -15,8 +15,8 @@ public class Test {
 	
 	public static void main(String[] args) {
 		try {
-			String url = "http://www.bobaedream.co.kr/view?code=freeb&No=1111926&bm=1";
-			String no = url.split("&No=")[1].split("&")[0];
+			String url = "http://mlbpark.donga.com/mbs/articleVC.php?mbsC=bullpen2&mbsIdx=2507711&cpage=1";
+			String no = url.split("&mbsIdx=")[1].split("&")[0];
 			System.out.println(no);
 			System.out.println(url);
 			

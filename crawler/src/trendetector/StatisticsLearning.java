@@ -397,13 +397,11 @@ class MLBPARKParser extends ArticleListParser {
 			try {
 				Elements tds = item.select("tbody tr td");
 
-				article.setArticleNo(Integer.parseInt(tds
-						.get(0).text()));
-				article.setSubject(tds.get(1).select("a")
-						.get(0).text());
-				article.setUrl(tds.get(1).select("a").get(0)
-						.attr("abs:href"));
-
+				String url = tds.get(1).select("a").get(0).attr("abs:href");
+				article.setArticleNo(Integer.parseInt(url.split("&mbsIdx=")[1].split("&")[0]));
+				article.setSubject(tds.get(1).select("a").get(0).text());
+				article.setUrl(url);
+				
 				articleList.add(article);
 
 			} catch (Exception e) {
@@ -500,12 +498,10 @@ class PpomPpuParser extends ArticleListParser {
 
 				Elements td = item.select("td");
 
-				article.setArticleNo(Integer.parseInt(td.get(0)
-						.text()));
-				article.setSubject(item.select(".list_title")
-						.text());
-				article.setUrl(td.get(2).select("a")
-						.attr("abs:href"));
+				String url = td.get(2).select("a").attr("abs:href");
+				article.setArticleNo(Integer.parseInt(url.split("&no=")[1].split("&")[0]));
+				article.setSubject(item.select(".list_title").text());
+				article.setUrl(url);
 
 				articleList.add(article);
 
@@ -598,11 +594,10 @@ class cookParser extends ArticleListParser {
 			try {
 				Elements td = item.select("td");
 
-				article.setArticleNo(Integer.parseInt(td.get(0)
-						.text()));
+				String url = td.get(1).select("a").attr("abs:href");
+				article.setArticleNo(Integer.parseInt(url.split("&num=")[1].split("&")[0]));
+				article.setUrl(url);
 				article.setSubject(td.get(1).select("a").text());
-				article.setUrl(td.get(1).select("a")
-						.attr("abs:href"));
 
 				articleList.add(article);
 
