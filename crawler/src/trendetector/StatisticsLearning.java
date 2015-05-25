@@ -3,10 +3,8 @@ package trendetector;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import kr.co.shineware.nlp.komoran.core.analyzer.Komoran;
 import kr.co.shineware.util.common.model.Pair;
@@ -16,13 +14,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.mongodb.BulkWriteOperation;
-import com.mongodb.bulk.UpdateRequest;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.model.WriteModel;
-import com.mongodb.client.result.UpdateResult;
-
 import trendetector.crawler.Article;
 import trendetector.crawler.FileURL;
 import trendetector.crawler.URLStringUtil;
@@ -31,6 +22,10 @@ import trendetector.crawler.parser.ArticleParseError;
 import trendetector.crawler.parser.ContentsParserFactory;
 import trendetector.mongodb.MongoDB;
 import trendetector.nlp.ExtractingIndexTerms;
+
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.result.UpdateResult;
 
 public class StatisticsLearning {
 
@@ -451,13 +446,11 @@ class BobaeDreamParser extends ArticleListParser {
 			Article article = new Article();
 
 			try {
-				article.setArticleNo(Integer.parseInt(item
-						.select(".num01").text()));
-				article.setSubject(item.select(
-						".pl14 .bsubject").text());
-				article.setUrl(item.select(".pl14 a").get(0)
-						.attr("abs:href"));
-
+				String url = item.select(".pl14 a").get(0).attr("abs:href");
+				article.setArticleNo(Integer.parseInt(url.split("&No=")[1].split("&")[0]));
+				article.setSubject(item.select(".pl14 .bsubject").text());
+				article.setUrl(url);
+				
 				articleList.add(article);
 
 			} catch (Exception e) {

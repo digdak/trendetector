@@ -10,6 +10,7 @@ import kr.co.shineware.util.common.model.Pair;
 
 public class KomoranTest {
 
+	@SuppressWarnings({ "unchecked", "resource" })
 	public static void main(String[] args) throws IOException {
 		Komoran komoran = new Komoran("crawler/models-full/");
 		komoran.setUserDic("crawler/models-full/dic.user");
