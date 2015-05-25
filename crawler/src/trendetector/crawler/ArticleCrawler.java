@@ -71,6 +71,10 @@ public class ArticleCrawler implements Runnable {
 					
 					where.append("article_no", article.getArticleNo());
 					
+					if (MongoDB.db.getCollection("article").count(where) > 0) {
+						doc.remove("date");
+					}
+					
 					UpdateResult ur = MongoDB.db.getCollection("article")
 							.updateOne(
 								where, update, opt

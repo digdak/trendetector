@@ -114,6 +114,10 @@ var rows =
 ]
 db.board.insert(rows);
 
+
+// =========== 주의!!!!!! 데이터 날릴 수 있음!!! ===============
+// =========== 주의!!!!!! 데이터 날릴 수 있음!!! ===============
+// =========== 주의!!!!!! 데이터 날릴 수 있음!!! ===============
 db.article.drop();
 db.article.ensureIndex(
 	{ board_id: 1, article_no: 1 },
@@ -121,9 +125,14 @@ db.article.ensureIndex(
 );
 
 db.statistics.drop();
-db.statistics.insert({ _id: 0, totalcnt: 0 });
+db.statistics.insert({ _id: 0, totalcnt: 1 });
 
 db.statistics.keywords.drop();
+// =========== 주의!!!!!! 데이터 날릴 수 있음!!! ===============
+// =========== 주의!!!!!! 데이터 날릴 수 있음!!! ===============
+// =========== 주의!!!!!! 데이터 날릴 수 있음!!! ===============
+
+
 
 db.system.js.remove({});
 // ======== 1주일 전 데이터들 삭제 및 통계 누적 =========
@@ -237,16 +246,17 @@ db.system.js.save({
 				retVal.ntf += doc.ntf;
 				retVal.cnt += doc.cnt;
 			});
-
+			
 			if (ntfmax < retVal.ntf) {
 				ntfmax = retVal.ntf;
 			}
-
+			
 			return retVal;
 		};
 
 		var finalizeF = function (key, reduceVal) {
-			reduceVal.ntf = reduceVal.ntf / ntfmax;
+			// reduceVal.ntf = reduceVal.ntf / ntfmax;
+			reduceVal.ntf = Math.log(reduceVal.ntf);
 			return reduceVal;
 		}
 
@@ -323,7 +333,7 @@ db.system.js.save({
 			return { ok: false, result: result };
 		}
 
-		var result = db.statistics.batch_log.save({
+		var result = db.batch_log.save({
 			_id: hour,
 			batch_time: now
 		});

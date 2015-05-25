@@ -91,8 +91,17 @@ function populateTable() {
 // Show Contents
 function showContents() {
     $.getJSON('/article/' + article_id, function (data) {
+        data.keywords.sort(function(a, b) {
+           return b.tf - a.tf;
+        });
         $('#contentsUrl').html('<a href="' + data.url + '">' + data.url + '</a>');
         $('#contentsSubject').html(data.subject);
+        data.keywords.forEach(function (keyword) {
+            if (keyword.keyword.length < 2 || keyword.keyword.length > 15) {
+                return;
+            }
+            $('#keywords').append(keyword.keyword + ' : ' + keyword.tf + '</br>');
+        });
         $('#contentsBody').html(data.contents);
     });
 };
