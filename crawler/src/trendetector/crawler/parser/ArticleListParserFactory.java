@@ -448,13 +448,11 @@ class MLBPARKParser extends ArticleListParser {
 
 
 class BobaeDreamParser extends ArticleListParser {
-	private Date lastDate;	// 마지막 파싱한 글의 시간
 	private SimpleDateFormat strToDateFormat;	// String -> Date 변경 포멧
 	private SimpleDateFormat dateToStrFormat;	// Date -> String 변경 포멧
 	
 	public BobaeDreamParser(String url) {
 		super(url);
-		this.lastDate = null;
 		this.strToDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 		this.dateToStrFormat = new SimpleDateFormat("yyyy/MM/dd");
 	}
@@ -490,13 +488,11 @@ class BobaeDreamParser extends ArticleListParser {
 				Date date = strToDateFormat.parse(dateToStrFormat.format(now) + " " + strDate);
 				article.setDate(date);
 				
-				article.setArticleNo(Integer.parseInt(item.select(".num01").text()));
+				String url = item.select(".pl14 a").get(0).attr("abs:href");
+				article.setArticleNo(Integer.parseInt(url.split("&No=")[1].split("&")[0]));
 				article.setSubject(item.select(".pl14 .bsubject").text());
 				article.setAuthor(item.select(".author02 .author").text());
-
-				
-				/* 댓글 수 추출 시 제거되는 태그이므로 반드시 먼저 해야 함 */
-				article.setUrl(item.select(".pl14 a").get(0).attr("abs:href"));
+				article.setUrl(url);
 				
 				/* 댓글 수를 추출하기 위해 제목에서 a 태그로 감싸진 부분을 제거하고 파싱 */
 				String strReplies = item.select(".totreply").text();

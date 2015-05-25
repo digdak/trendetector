@@ -1,41 +1,45 @@
 package trendetector.test;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import kr.co.shineware.nlp.komoran.core.analyzer.Komoran;
 
-import org.jsoup.nodes.Document;
+import org.bson.Document;
+import org.bson.types.ObjectId;
 
-import trendetector.crawler.FileURL;
+import trendetector.mongodb.MongoDB;
+
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoDatabase;
 
 
 public class Test {
 	
 	public static void main(String[] args) {
 		try {
-			String subject = "빅뱅 vs 엑소";
-			System.out.println("안녕하세요?".length());
-			subject = subject.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`|.|,]", " @ ");
-			System.out.println(subject);
-////			Elements items = doc.select(".boardList tbody tr");
-//
-//			String strReplies = doc.select("font").text();
-//			if (!strReplies.isEmpty()) {
-//				System.out.println(Integer.parseInt(strReplies));
-//			}
-//			
-//			String str = "<img src=\"http:www.naver.com\" alt=\"병신력\" style=\"margin: 0px\">123123</img>";
-//			System.out.println(Jsoup.clean(str, url, Whitelist.none().addAttributes("img", "src", "style")));
-//			
+			String url = "http://www.bobaedream.co.kr/view?code=freeb&No=1111926&bm=1";
+			String no = url.split("&No=")[1].split("&")[0];
+			System.out.println(no);
+			System.out.println(url);
 			
-//			String contents = "<div>안녕<br>하세요</div>";
-//			contents = contents.replaceAll("<", " <").replace(">", "> ");
+			Komoran komoran = new Komoran("crawler/models-full/");
+			komoran.setUserDic("crawler/models-full/dic.user");
+			komoran.setFWDic("crawler/models-full/fwd.user");
+			MongoDatabase db = MongoDB.create();
 			
-//			SimpleDateFormat dateToStrFormat = new SimpleDateFormat("yy/MM/dd");
-//			SimpleDateFormat strToDateFormat = new SimpleDateFormat("yy/MM/dd HH:mm:ss");
-//			Date now = new Date();
-//			Date date = strToDateFormat.parse(dateToStrFormat.format(now) + " " + "23:03:00");
-//			System.out.println(date.getTime());
-//			System.out.println(now.getTime());
+			Document where = new Document();
+			
+			where.append("_id", new ObjectId("5562c3d78a34bd15383e512a"));
+
+			FindIterable<Document> iter = 
+					db.getCollection("article").find(where).limit(100);
+			
+			iter.forEach( (Document doc) -> {
+				String subject = doc.getString("subject");
+				String contents = doc.getString("contents");
+				
+				System.out.println(subject);
+				System.out.println(contents);
+				System.out.println(doc.getString("url"));
+			});
 			
 		} catch (Exception e) {
 			e.printStackTrace();
