@@ -69,6 +69,7 @@ public class FileURL {
 		}
 		
 		is.close();
+		get.releaseConnection();
 		return sb.toString();
 	}
 }

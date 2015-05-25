@@ -65,7 +65,7 @@ var rows =
 		name: '자유게시판',
 		url: 'http://www.slrclub.com/bbs/zboard.php?id=free',
 		imagedown: false,
-		active: false
+		active: true
 	},
 	{
 		community: 'OU',
@@ -125,7 +125,7 @@ db.article.ensureIndex(
 );
 
 db.statistics.drop();
-db.statistics.insert({ _id: 0, totalcnt: 1 });
+db.statistics.insert({ _id: 0, totalcnt: 0 });
 
 db.statistics.keywords.drop();
 // =========== 주의!!!!!! 데이터 날릴 수 있음!!! ===============
@@ -224,7 +224,7 @@ db.system.js.save({
 		var before = Number(hour);
 
 		if (isNaN(before)) {
-			return { ok: false, error: "hour is NaN" };
+			return { "ok": false, "error": "hour is NaN" };
 		}
 
 		var strCollection = "keyword_" + before;
@@ -236,27 +236,30 @@ db.system.js.save({
 				if (key.length < 2 || key.length > 15) {
 					return;
 				}
-				emit(key, { ntf: data.tf, cnt: 1 });
+
+				emit(key, { "ntf": data.tf, "cnt": 1 });
 			});
 		};
 
 		var reduce = function (key, values) {
-			var retVal = { ntf: 0, cnt: 0 };
+			var reduceVal = { "ntf": 0, "cnt": 0 };
+
 			values.forEach(function (doc) {
-				retVal.ntf += doc.ntf;
-				retVal.cnt += doc.cnt;
+				reduceVal.ntf += doc.ntf;
+				reduceVal.cnt += doc.cnt;
 			});
 			
-			if (ntfmax < retVal.ntf) {
-				ntfmax = retVal.ntf;
+			/* NTF 정규화 목적 */
+			if (NTFMAX < reduceVal.ntf) {
+				NTFMAX = reduceVal.ntf;
 			}
-			
-			return retVal;
+
+			return reduceVal;
 		};
 
+		/* NTF 정규화 목적 */
 		var finalizeF = function (key, reduceVal) {
-			// reduceVal.ntf = reduceVal.ntf / ntfmax;
-			reduceVal.ntf = Math.log(reduceVal.ntf);
+			reduceVal.ntf = reduceVal.ntf / NTFMAX;
 			return reduceVal;
 		}
 
@@ -265,48 +268,60 @@ db.system.js.save({
 		date.setHours(now.getHours() - before);
 
 		db.article.mapReduce(map, reduce, {
-			out: { replace: strCollection },
-			query: {
-				keywords: { $exists: true, $not: { $eq: false } },
-				date: { $gt: date }
+			"out": { "replace": strCollection },
+			"query": {
+				"keywords": { "$exists": true, "$not": { "$eq": false } },
+				"date": { "$gt": date }
 				
 			},
-			finalize: finalizeF,
-			scope: {
-				ntfmax: 0
-			}
+			"scope": { "NTFMAX": 0 }
+			/*
+			,finalize: finalizeF,	// NTF 정규화 할 때 주석 제거
+			*/
 		});
 
 		/* 통계 데이터를 이용한 NTFIDF 계산 */
 		var totalcnt = db.statistics.findOne().totalcnt;
 		var bulkUpdate = db[strCollection].initializeUnorderedBulkOp();
 		db[strCollection].find().forEach(function (doc) {
-			var stat = db.statistics.keywords.findOne({ _id: doc._id });
+			var stat = db.statistics.keywords.findOne({ "_id": doc._id });
 			var kcnt = 0;
 
 			if (stat !== null) {
 				kcnt = stat.cnt;
 			}
 
-			var idf = Math.log(totalcnt / (kcnt + 1));
-			var ntfidf = (doc.value.ntf + 1.0) * (idf + 1.0);
-			bulkUpdate.find({ _id: doc._id }).updateOne({
-				$set: { "value.ntfidf": ntfidf }
+			var idf = Math.log((totalcnt + 1) / (kcnt + 1));
+			var ntfidf = Math.log(doc.value.ntf + 1.0) * idf;
+
+			bulkUpdate.find({ "_id": doc._id }).updateOne({
+				"$set": { "value.idf": idf, "value.ntfidf": ntfidf }
 			});
 		});
 		var result = bulkUpdate.execute();
 		if (result.nMatched == 0 
 		&& result.nUpserted == 0 
 		&& result.nModified == 0) {
-			return { ok: false, result: result };
+			return { "ok": false, "result": result };
+		}
+
+		// ==== 키워드 순위 결정 ==== //
+
+		/* 일상어 제거
+		 * x퍼센트의 비중으로 등장하는 단어는 제외 (전체기간에서)
+		 * log(100 / x)
+		 */
+		var minidf = Math.log(100 / 3);
+		var where = {
+			"value.idf": { "$gt": minidf }
 		}
 
 		/* NTF순 Rank */
 		var bulkRank = db[strCollection].initializeUnorderedBulkOp();
 		var cnt = 1;
-		db[strCollection].find().sort({ "value.ntf": -1 }).forEach(function (doc) {
-			bulkRank.find({ _id: doc._id }).updateOne({
-				$set: { rank: cnt }
+		db[strCollection].find(where).sort({ "value.ntf": -1 }).forEach(function (doc) {
+			bulkRank.find({ "_id": doc._id }).updateOne({
+				"$set": { "rank": cnt }
 			});
 			cnt++;
 		});
@@ -314,15 +329,15 @@ db.system.js.save({
 		if (result.nMatched == 0 
 		&& result.nUpserted == 0 
 		&& result.nModified == 0) {
-			return { ok: false, result: result };
+			return { "ok": false, "result": result };
 		}
 
 		/* NTFIDF순 Rank */
 		var bulkRank = db[strCollection].initializeUnorderedBulkOp();
 		var cnt = 1;
-		db[strCollection].find().sort({ "value.ntfidf": -1 }).forEach(function (doc) {
-			bulkRank.find({ _id: doc._id }).updateOne({
-				$inc: { rank: cnt }
+		db[strCollection].find(where).sort({ "value.ntfidf": -1 }).forEach(function (doc) {
+			bulkRank.find({ "_id": doc._id }).updateOne({
+				"$inc": { "rank": cnt }
 			});
 			cnt++;
 		});
@@ -330,20 +345,22 @@ db.system.js.save({
 		if (result.nMatched == 0 
 		&& result.nUpserted == 0 
 		&& result.nModified == 0) {
-			return { ok: false, result: result };
+			return { "ok": false, "result": result };
 		}
+		
+		// ==== 키워드 순위 결정 END ==== //
 
 		var result = db.batch_log.save({
-			_id: hour,
-			batch_time: now
+			"_id": hour,
+			"batch_time": now
 		});
 		if (result.nMatched == 0 
 		&& result.nUpserted == 0 
 		&& result.nModified == 0) {
-			return { ok: false, result: result };
+			return { "ok": false, "result": result };
 		}
 		
-		return { ok: true };
+		return { "ok": true };
 	}
 });
 // =========================================

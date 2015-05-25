@@ -37,8 +37,8 @@ public class StatisticsLearning {
 		MongoDatabase db = MongoDB.create();
 		
 		// 주의!! 같은 데이터 소스로부터 학습을 2번이상 반복할 경우 통계가 잘못될 수 있음.
-		String startUrl = "http://bbs2.ruliweb.daum.net/gaia/do/ruliweb/default/community/325/list?pageIndex=2155&bbsId=G005&itemId=143";
-		String community = "RW";
+		String startUrl = "";
+		String community = "";
 //		int pagecnt = 100;
 		ArticleListParser parser = ArticleListParserFactory.create(community, startUrl);
 
@@ -221,7 +221,7 @@ class ClienParser extends ArticleListParser {
 
 }
 
-// 4월 1일까지 완료
+// 5월 11일까지 완료
 class SLRClubParser extends ArticleListParser {
 
 	public SLRClubParser(String url) {
@@ -363,7 +363,7 @@ class DogDripParser extends ArticleListParser {
 
 }
 
-// 미완
+// ~ 5월 25일까지, 5월 18일 ~ 5월 11일까지 완료
 class MLBPARKParser extends ArticleListParser {
 
 	public MLBPARKParser(String url) {
@@ -414,7 +414,7 @@ class MLBPARKParser extends ArticleListParser {
 
 }
 
-// 미완
+// ~ 5월 25일까지 완료
 class BobaeDreamParser extends ArticleListParser {
 
 	public BobaeDreamParser(String url) {
@@ -459,7 +459,7 @@ class BobaeDreamParser extends ArticleListParser {
 	}
 }
 
-// 미완
+// ~ 5월 25일까지 완료
 class PpomPpuParser extends ArticleListParser {
 
 	public PpomPpuParser(String url) {
@@ -515,7 +515,7 @@ class PpomPpuParser extends ArticleListParser {
 
 }
 
-// 5월 16일까지 완료
+// ~ 5월 25일, 5월 22일 ~ 5월 16일까지 완료
 class RuliwebParser extends ArticleListParser {
 
 	public RuliwebParser(String url) {
@@ -566,7 +566,7 @@ class RuliwebParser extends ArticleListParser {
 
 }
 
-// 미완
+// ~ 5월 25일까지 완료
 class cookParser extends ArticleListParser {
 
 	public cookParser(String url) {
