@@ -88,7 +88,10 @@ router.get('/article/list', function (req, res, next) {
     page = (page - 1) * LIMIT;
 
     model_keyword.get_keyword_info(function (data) {
-        var where = { 'contents': { '$exists': true } };
+        var where = {
+            'contents': { '$exists': true },
+            'keywords': { '$exists': true }
+        };
 
         if (data !== undefined) {
             where._id = {'$in': data.article};
@@ -119,10 +122,24 @@ router.get('/article/:id', function (req, res, next) {
     })(req.db, article_id);
 });
 
-router.get('/keyword/list', function (req, res, next) {
-    model_keyword.get_keywordlist_by_community(function (data) {
-        res.json(data);
-    })(req.db);
+router.get('/keyword/list/:term', function (req, res, next) {
+    var term = Number(req.params.term);
+
+    if (isNaN(term)) {
+        var err = new Error('Not Valid');
+        err.status = 403;
+        return next(err);
+    }
+
+    model_keyword.get_keywords(function (batch_time, keywords) {
+        var retVal = {};
+        retVal.batch_time = batch_time;
+        retVal.keywords = keywords;
+
+        res.json(retVal);
+
+    })(req.db, term);
+
 });
 
 router.get('/community/list', function (req, res) {

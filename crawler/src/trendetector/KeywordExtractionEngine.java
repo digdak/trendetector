@@ -129,6 +129,7 @@ public class KeywordExtractionEngine {
 							}
 						}
 						
+						double tfmax = 0;
 						int totalwordcnt = words.size();
 						for (Pair<String, Byte> word : words) {
 							double tf = (double)1 / (double)totalwordcnt;
@@ -137,13 +138,13 @@ public class KeywordExtractionEngine {
 							
 							/* check subject */
 							if ((status & check) > 0) {
-								tf *= 5;
+								tf *= 4;
 							}
 							
 							/* check main key */
 							check <<= 1;
 							if ((status & check) > 0) {
-								tf *= 2;
+								tf *= 3;
 							}
 							
 							/* check NNP */
@@ -157,7 +158,11 @@ public class KeywordExtractionEngine {
 							if (before != null) {
 								tf = tf + before;
 							}
-
+							
+							if (tfmax < tf) {
+								tfmax = tf;
+							}
+							
 							hashMap.put(word.getFirst(), tf);
 						}
 						
@@ -168,7 +173,7 @@ public class KeywordExtractionEngine {
 							String key = keys.next();
 							Document keyword = new Document();
 							keyword.append("keyword", key);
-							keyword.append("tf", hashMap.get(key));
+							keyword.append("tf", hashMap.get(key) / tfmax);
 							keywords.add(keyword);
 						}
 						

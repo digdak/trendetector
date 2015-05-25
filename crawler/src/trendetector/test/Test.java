@@ -12,14 +12,10 @@ public class Test {
 	
 	public static void main(String[] args) {
 		try {
-			String url = "http://www.dogdrip.net/72607284";
-			Document doc = new Document(url);
-			doc.html(FileURL.getHtml(url));
-			String strDate = doc.select(".dateAndCount .date").text();
-			SimpleDateFormat strToDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-			Date date = strToDateFormat.parse(strDate);
-			System.out.println(date.getTime());
-//			doc.html("<body><div><font>  1  </font></div></body>");
+			String subject = "빅뱅 vs 엑소";
+			System.out.println("안녕하세요?".length());
+			subject = subject.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`|.|,]", " @ ");
+			System.out.println(subject);
 ////			Elements items = doc.select(".boardList tbody tr");
 //
 //			String strReplies = doc.select("font").text();

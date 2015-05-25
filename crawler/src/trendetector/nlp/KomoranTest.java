@@ -12,6 +12,8 @@ public class KomoranTest {
 
 	public static void main(String[] args) throws IOException {
 		Komoran komoran = new Komoran("crawler/models-full/");
+		komoran.setUserDic("crawler/models-full/dic.user");
+		komoran.setFWDic("crawler/models-full/fwd.user");
 		
 		Scanner scan = new Scanner(System.in);
 		for (;;) {
@@ -19,6 +21,7 @@ public class KomoranTest {
 			System.out.println("[NLP] " + str);
 			str = str.replaceAll("<", " <").replace(">", "> ");
 			str = str.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`|.]", " @ ");
+			str = str.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`|.|,]", " @ ");
 			
 			List<List<Pair<String, String>>> result = komoran.analyze(str);
 			
