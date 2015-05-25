@@ -43,7 +43,8 @@ public class ArticleCrawler implements Runnable {
 		long now = new Date().getTime();
 		ArticleListParser parser = ArticleListParserFactory.create(community, url);
 		ArticleParseError callbackParseError = (e, article) -> {
-			System.out.println(article.getArticleNo());
+			if (article != null)
+				System.out.println(article.getArticleNo());
 			e.printStackTrace();
 		};
 		
