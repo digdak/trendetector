@@ -84,11 +84,11 @@ public class ArticleCrawler implements Runnable {
 							);
 					
 					if (ur.getMatchedCount() == 0) {
-						System.out.println(
-							new Date() + "\t[DONE] "
-							+ ur.getUpsertedId().asObjectId().getValue()
-							+ "\t" + article.getSubject()
-						);
+//						System.out.println(
+//							new Date() + "\t[DONE] "
+//							+ ur.getUpsertedId().asObjectId().getValue()
+//							+ "\t" + article.getSubject()
+//						);
 					}
 				}
 			} while (parser.nextPage());
