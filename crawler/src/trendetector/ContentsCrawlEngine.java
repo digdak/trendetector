@@ -20,7 +20,15 @@ import com.mongodb.client.MongoDatabase;
 public class ContentsCrawlEngine {
 	
 	public static void main(String[] args) throws ClassNotFoundException, InterruptedException {
-		MongoDatabase db = MongoDB.create();
+		String host = "127.0.0.1";
+		int port = 27017;
+		String database = "trendetector";
+		switch (args.length) {
+		case 3:  database = args[2];
+		case 2: port = Integer.parseInt(args[1]);
+		case 1: host = args[0];
+		}
+		MongoDatabase db = MongoDB.create(host, port, database);
 		
 		Document where = new Document("contents", new Document("$exists", false));
 		Document orderby = new Document("date", 1);
