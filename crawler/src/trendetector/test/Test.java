@@ -15,11 +15,6 @@ public class Test {
 	
 	public static void main(String[] args) {
 		try {
-			String url = "http://mlbpark.donga.com/mbs/articleVC.php?mbsC=bullpen2&mbsIdx=2507711&cpage=1";
-			String no = url.split("&mbsIdx=")[1].split("&")[0];
-			System.out.println(no);
-			System.out.println(url);
-			
 			Komoran komoran = new Komoran("crawler/models-full/");
 			komoran.setUserDic("crawler/models-full/dic.user");
 			komoran.setFWDic("crawler/models-full/fwd.user");
@@ -27,7 +22,7 @@ public class Test {
 			
 			Document where = new Document();
 			
-			where.append("_id", new ObjectId("5562c3d78a34bd15383e512a"));
+			where.append("_id", new ObjectId("5563e52048bd2f9891bf0e35"));
 
 			FindIterable<Document> iter = 
 					db.getCollection("article").find(where).limit(100);
@@ -36,9 +31,11 @@ public class Test {
 				String subject = doc.getString("subject");
 				String contents = doc.getString("contents");
 				
-				System.out.println(subject);
-				System.out.println(contents);
-				System.out.println(doc.getString("url"));
+//				System.out.println(subject);
+//				System.out.println(contents);
+//				System.out.println(doc.getString("url"));
+				
+				System.out.println(komoran.analyze(subject));
 			});
 			
 		} catch (Exception e) {

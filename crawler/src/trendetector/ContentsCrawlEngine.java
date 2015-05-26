@@ -83,14 +83,14 @@ public class ContentsCrawlEngine {
 								"\t" + board_id);
 						
 					} catch (Exception e) {
-						e.printStackTrace();
 						db.getCollection("article").updateOne(
 								new Document("_id", doc.getObjectId("_id")),
 								new Document("$set", new Document("contents", false))
 							);
-						System.out.println(new Date() + "\t[FAIL] " + doc.getObjectId("_id") + 
+						System.err.println(new Date() + "\t[FAIL] " + doc.getObjectId("_id") + 
 								"\t" + community + 
 								"\t" + board_id);
+						e.printStackTrace();
 					}
 				});
 					
