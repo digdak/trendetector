@@ -31,10 +31,19 @@ public class StatisticsLearning {
 
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) {
+		String host = "127.0.0.1";
+		int port = 27017;
+		String database = "trendetector";
+		switch (args.length) {
+		case 3:  database = args[2];
+		case 2: port = Integer.parseInt(args[1]);
+		case 1: host = args[0];
+		}
+		MongoDatabase db = MongoDB.create(host, port, database);
+		
 		Komoran komoran = new Komoran("crawler/models-full/");
 		komoran.setUserDic("crawler/models-full/dic.user");
 		komoran.setFWDic("crawler/models-full/fwd.user");
-		MongoDatabase db = MongoDB.create();
 		
 		// 주의!! 같은 데이터 소스로부터 학습을 2번이상 반복할 경우 통계가 잘못될 수 있음.
 		String startUrl = "";
