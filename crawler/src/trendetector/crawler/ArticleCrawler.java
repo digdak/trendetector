@@ -44,7 +44,7 @@ public class ArticleCrawler implements Runnable {
 		ArticleListParser parser = ArticleListParserFactory.create(community, url);
 		ArticleParseError callbackParseError = (e, article) -> {
 			if (article != null)
-				System.out.println(article.getArticleNo());
+				System.err.println(article.getArticleNo());
 			e.printStackTrace();
 		};
 		

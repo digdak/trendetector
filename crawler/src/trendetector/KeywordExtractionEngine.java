@@ -184,12 +184,12 @@ public class KeywordExtractionEngine {
 						System.out.println(new Date() + "\t[DONE] " + doc.getObjectId("_id"));
 						
 					} catch (Exception e) {
-						e.printStackTrace();
 						db.getCollection("article").updateOne(
 								new Document("_id", doc.getObjectId("_id")),
 								new Document("$set", new Document("keywords", false))
 							);
-						System.out.println(new Date() + "\t[FAIL] " + doc.getObjectId("_id"));
+						System.err.println(new Date() + "\t[FAIL] " + doc.getObjectId("_id"));
+						e.printStackTrace();
 					}
 				});
 					
