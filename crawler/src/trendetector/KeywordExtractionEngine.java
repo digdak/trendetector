@@ -190,7 +190,7 @@ public class KeywordExtractionEngine {
 							new Document("_id", doc.getObjectId("_id")),
 							new Document("$set", new Document("keywords", keywords))
 						);
-						System.out.println(new Date() + "\t[DONE] " + doc.getObjectId("_id"));
+//						System.out.println(new Date() + "\t[DONE] " + doc.getObjectId("_id"));
 						
 					} catch (Exception e) {
 						db.getCollection("article").updateOne(

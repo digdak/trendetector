@@ -83,7 +83,7 @@ var rows =
 		community: 'MP',
 		name: 'BULLPEN',
 		url: 'http://mlbpark.donga.com/mbs/articleL.php?mbsC=bullpen2',
-		imagedown: true,
+		imagedown: false,
 		active: true
 	},
 	{
@@ -96,7 +96,7 @@ var rows =
 		community: 'PP',
 		name: '자유게시판',
 		url: 'http://www.ppomppu.co.kr/zboard/zboard.php?id=freeboard',
-		imagedown: true,
+		imagedown: false,
 		active: true
 	},
 	{
@@ -308,7 +308,7 @@ db.system.js.save({
 		// ==== 키워드 순위 결정 ==== //
 
 		/* 일상어 제거
-		 * x퍼센트의 비중으로 등장하는 단어는 제외 (전체기간에서)
+		 * 전체기간에서 x퍼센트 이상 등장한 단어 제거
 		 * log(100 / x)
 		 */
 		var minidf = Math.log(100 / 3);
@@ -347,7 +347,7 @@ db.system.js.save({
 		&& result.nModified == 0) {
 			return { "ok": false, "result": result };
 		}
-		
+
 		// ==== 키워드 순위 결정 END ==== //
 
 		var result = db.batch_log.save({

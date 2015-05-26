@@ -74,8 +74,8 @@ public class ContentsCrawlEngine {
 								String imageUrl = image.attr("src");
 								String filename = doc.getObjectId("_id") + "_" + image.hashCode()
 										+ imageUrl.substring(imageUrl.lastIndexOf('.'));
-								FileURL.download(imageUrl, "public\\images\\" + 
-										board_id.toString() + "\\" + filename);
+								FileURL.download(imageUrl, "public/images/" + 
+										board_id.toString() + "/" + filename);
 								image.select("img").attr("src", "/images/" +  board_id.toString() + "/" + filename);
 							}
 							
@@ -86,9 +86,9 @@ public class ContentsCrawlEngine {
 							new Document("_id", doc.getObjectId("_id")),
 							new Document("$set", new Document("contents", contents))
 						);
-						System.out.println(new Date() + "\t[DONE] " + doc.getObjectId("_id") + 
-								"\t" + community + 
-								"\t" + board_id);
+//						System.out.println(new Date() + "\t[DONE] " + doc.getObjectId("_id") + 
+//								"\t" + community + 
+//								"\t" + board_id);
 						
 					} catch (Exception e) {
 						db.getCollection("article").updateOne(
