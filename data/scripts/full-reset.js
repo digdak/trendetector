@@ -220,14 +220,21 @@ db.system.js.save({
 // ========= 시간대 별 키워드 추출 및 순위 결정 =========
 db.system.js.save({
 	_id: "keywordRecommendation",
-	value: function (hour) {
-		var before = Number(hour);
+	value: function (shour, ehour) {
+		var sbefore = Number(shour);
+		var ebefore = Number(ehour);
 
-		if (isNaN(before)) {
+		if (isNaN(sbefore) || isNaN(ebefore)) {
 			return { "ok": false, "error": "hour is NaN" };
 		}
 
-		var strCollection = "keyword_" + before;
+		var now = new ISODate();
+		var sdate = new ISODate();
+		var edate = new ISODate();
+		sdate.setHours(now.getHours() - sbefore);
+		edate.setHours(now.getHours() - ebefore);
+
+		var strCollection = "keyword_" + sbefore + "_" + ebefore;
 
 		/* MapReduce -> create Keyword, NTF Colection */
 		var map = function () {
@@ -263,15 +270,11 @@ db.system.js.save({
 			return reduceVal;
 		}
 
-		var now = new ISODate();
-		var date = new ISODate();
-		date.setHours(now.getHours() - before);
-
 		db.article.mapReduce(map, reduce, {
 			"out": { "replace": strCollection },
 			"query": {
 				"keywords": { "$exists": true, "$not": { "$eq": false } },
-				"date": { "$gt": date }
+				"date": { "$lt": sdate, "$gt": edate }
 				
 			},
 			"scope": { "NTFMAX": 0 }
@@ -283,7 +286,7 @@ db.system.js.save({
 		/* 통계 데이터를 이용한 NTFIDF 계산 */
 		var totalcnt = db.statistics.findOne().totalcnt;
 		var bulkUpdate = db[strCollection].initializeUnorderedBulkOp();
-		db[strCollection].find().forEach(function (doc) {
+		db[strCollection].find({ "value.cnt": { "$gt": 2 } }).forEach(function (doc) {
 			var stat = db.statistics.keywords.findOne({ "_id": doc._id });
 			var kcnt = 0;
 
@@ -311,9 +314,10 @@ db.system.js.save({
 		 * 전체기간에서 x퍼센트 이상 등장한 단어 제거
 		 * log(100 / x)
 		 */
-		var minidf = Math.log(100 / 3);
+		var minidf = Math.log(100 / 1);
 		var where = {
-			"value.idf": { "$gt": minidf }
+			"value.idf": { "$gt": minidf },
+			"value.cnt": { "$gt": 2 }
 		}
 
 		/* NTF순 Rank */
@@ -339,7 +343,7 @@ db.system.js.save({
 			bulkRank.find({ "_id": doc._id }).updateOne({
 				"$inc": { "rank": cnt }
 			});
-			cnt++;
+			cnt+=2;
 		});
 		var result = bulkRank.execute();
 		if (result.nMatched == 0 
@@ -351,7 +355,7 @@ db.system.js.save({
 		// ==== 키워드 순위 결정 END ==== //
 
 		var result = db.batch_log.save({
-			"_id": hour,
+			"_id": strCollection,
 			"batch_time": now
 		});
 		if (result.nMatched == 0 
