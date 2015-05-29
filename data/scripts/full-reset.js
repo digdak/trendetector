@@ -270,7 +270,7 @@ db.system.js.save({
 			return reduceVal;
 		}
 
-		db.article.mapReduce(map, reduce, {
+		var result = db.article.mapReduce(map, reduce, {
 			"out": { "replace": strCollection },
 			"query": {
 				"keywords": { "$exists": true, "$not": { "$eq": false } },
@@ -283,10 +283,22 @@ db.system.js.save({
 			*/
 		});
 
+		if (result.ok !== 1) {
+			return { "ok": false, "result": result };
+		}
+
+		/* fingerprint */
+		var where = {
+			"value.cnt": { "$gt": 2 }
+		};
+		var skip = db[strCollection].count(where) * (5 / 100);
+		var minntf = db[strCollection].find(where).sort({ "value.ntf": -1 }).skip(skip)[0].value.ntf;
+		where["value.ntf"] = { "$gt": minntf };
+
 		/* 통계 데이터를 이용한 NTFIDF 계산 */
 		var totalcnt = db.statistics.findOne().totalcnt;
 		var bulkUpdate = db[strCollection].initializeUnorderedBulkOp();
-		db[strCollection].find({ "value.cnt": { "$gt": 2 } }).forEach(function (doc) {
+		db[strCollection].find(where).forEach(function (doc) {
 			var stat = db.statistics.keywords.findOne({ "_id": doc._id });
 			var kcnt = 0;
 
@@ -295,10 +307,15 @@ db.system.js.save({
 			}
 
 			var idf = Math.log((totalcnt + 1) / (kcnt + 1));
-			var ntfidf = Math.log(doc.value.ntf + 1.0) * idf;
+			var ntfidf = doc.value.ntf * idf;
+			var ntfidf1 = Math.log((doc.value.ntf * 4) + 1.0) * idf;
 
 			bulkUpdate.find({ "_id": doc._id }).updateOne({
-				"$set": { "value.idf": idf, "value.ntfidf": ntfidf }
+				"$set": { 
+					"value.idf": idf, 
+					"value.ntfidf": ntfidf,
+					"value.ntfidf1": ntfidf1
+				}
 			});
 		});
 		var result = bulkUpdate.execute();
@@ -309,16 +326,6 @@ db.system.js.save({
 		}
 
 		// ==== 키워드 순위 결정 ==== //
-
-		/* 일상어 제거
-		 * 전체기간에서 x퍼센트 이상 등장한 단어 제거
-		 * log(100 / x)
-		 */
-		var minidf = Math.log(100 / 1);
-		var where = {
-			"value.idf": { "$gt": minidf },
-			"value.cnt": { "$gt": 2 }
-		}
 
 		/* NTF순 Rank */
 		var bulkRank = db[strCollection].initializeUnorderedBulkOp();
@@ -343,7 +350,7 @@ db.system.js.save({
 			bulkRank.find({ "_id": doc._id }).updateOne({
 				"$inc": { "rank": cnt }
 			});
-			cnt+=2;
+			cnt++;
 		});
 		var result = bulkRank.execute();
 		if (result.nMatched == 0 
@@ -352,7 +359,23 @@ db.system.js.save({
 			return { "ok": false, "result": result };
 		}
 
-		// ==== 키워드 순위 결정 END ==== //
+		/* NTFIDF1순 Rank */
+		var bulkRank = db[strCollection].initializeUnorderedBulkOp();
+		var cnt = 1;
+		db[strCollection].find(where).sort({ "value.ntfidf1": -1 }).forEach(function (doc) {
+			bulkRank.find({ "_id": doc._id }).updateOne({
+				"$inc": { "rank": cnt }
+			});
+			cnt++;
+		});
+		var result = bulkRank.execute();
+		if (result.nMatched == 0 
+		&& result.nUpserted == 0 
+		&& result.nModified == 0) {
+			return { "ok": false, "result": result };
+		}
+
+		/* ==== 키워드 순위 결정 END ==== */
 
 		var result = db.batch_log.save({
 			"_id": strCollection,

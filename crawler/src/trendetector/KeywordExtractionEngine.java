@@ -90,8 +90,8 @@ public class KeywordExtractionEngine {
 					
 					try {
 						contents = Jsoup.parse(contents).text();
-						contents = contents.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`|.|,]", " @ ");
-						subject = subject.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`|.|,]", " @ ");
+						contents = contents.replaceAll("[\\n|\\r|\\t|(|)|\\[|\\]|{|}|'|“|”|\"|`|.|,]", " @ ");
+						subject = subject.replaceAll("[\\n|\\r|\\t|(|)|\\[|\\]|{|}|'|“|”|\"|`|.|,]", " @ ");
 						List<List<Pair<String, String>>> result = null;
 						
 						result = komoran.analyze(subject);
