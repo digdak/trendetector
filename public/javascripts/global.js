@@ -46,13 +46,16 @@ function populateTable() {
 
     // Empty content string
     var tableContent = '';
-    var query = { 'page': page };
+    var query = { };
 
+    if (page === undefined || page === '') {
+        page = 1;
+    }
     if(community !== "") {
         query.community = community;
     }
     // jQuery AJAX call for JSON
-    $.getJSON('/article/list', query, function (data) {
+    $.post('/article/list?page='+page, query, function (data) {
         // this variable declare on scripit DOM at layout.jade
         // using for pagination
         var total =  parseInt(data.totalcount);
