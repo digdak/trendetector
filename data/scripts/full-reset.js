@@ -308,7 +308,7 @@ db.system.js.save({
 
 			var idf = Math.log((totalcnt + 1) / (kcnt + 1));
 			var ntfidf = doc.value.ntf * idf;
-			var ntfidf1 = Math.log((doc.value.ntf * 4) + 1.0) * idf;
+			var ntfidf1 = Math.log(doc.value.ntf + 1.0) * idf;
 
 			bulkUpdate.find({ "_id": doc._id }).updateOne({
 				"$set": { 
@@ -327,10 +327,10 @@ db.system.js.save({
 
 		// ==== 키워드 순위 결정 ==== //
 
-		/* NTF순 Rank */
+		/* NTFIDF순 Rank/
 		var bulkRank = db[strCollection].initializeUnorderedBulkOp();
 		var cnt = 1;
-		db[strCollection].find(where).sort({ "value.ntf": -1 }).forEach(function (doc) {
+		db[strCollection].find(where).sort({ "value.ntfidf": -1 }).forEach(function (doc) {
 			bulkRank.find({ "_id": doc._id }).updateOne({
 				"$set": { "rank": cnt }
 			});
@@ -343,23 +343,7 @@ db.system.js.save({
 			return { "ok": false, "result": result };
 		}
 
-		/* NTFIDF순 Rank */
-		var bulkRank = db[strCollection].initializeUnorderedBulkOp();
-		var cnt = 1;
-		db[strCollection].find(where).sort({ "value.ntfidf": -1 }).forEach(function (doc) {
-			bulkRank.find({ "_id": doc._id }).updateOne({
-				"$inc": { "rank": cnt }
-			});
-			cnt++;
-		});
-		var result = bulkRank.execute();
-		if (result.nMatched == 0 
-		&& result.nUpserted == 0 
-		&& result.nModified == 0) {
-			return { "ok": false, "result": result };
-		}
-
-		/* NTFIDF1순 Rank */
+		/* NTFIDF1순 Rank/
 		var bulkRank = db[strCollection].initializeUnorderedBulkOp();
 		var cnt = 1;
 		db[strCollection].find(where).sort({ "value.ntfidf1": -1 }).forEach(function (doc) {
