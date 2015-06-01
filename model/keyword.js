@@ -75,9 +75,7 @@ exports.get_keywords = function (next) {
                     if (err) {
                         throw err;
                     }
-                    keyword_list.sort(function(a, b) {
-                        return b.ntfidf - a.ntfidf;
-                    });
+                    
                     next(doc.batch_time, keyword_list);
             });
         });
