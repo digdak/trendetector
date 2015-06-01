@@ -19,6 +19,26 @@ var rows =
 	{
 		_id: 'DD',
 		name: '개드립'
+	},
+	{
+		_id: 'MP',
+		name: 'MLBPARK'
+	},
+	{
+		_id: 'BD',
+		name: '보배드림'
+	},
+	{
+		_id: 'PP',
+		name: '뽐뿌'
+	},
+	{
+		_id: 'RW',
+		name: '루리웹'
+	},
+	{
+		_id: 'CK',
+		name: '82cook'
 	}
 ];
 db.community.insert(rows);
@@ -57,6 +77,38 @@ var rows =
 		community: 'DD',
 		name: '개드립',
 		url: 'http://www.dogdrip.net/dogdrip',
+		active: true
+	},
+	{
+		community: 'MP',
+		name: 'BULLPEN',
+		url: 'http://mlbpark.donga.com/mbs/articleL.php?mbsC=bullpen2',
+		imagedown: true,
+		active: true
+	},
+	{
+		community: 'BD',
+		name: '자유게시판',
+		url: 'http://www.bobaedream.co.kr/list?code=freeb',
+		active: true
+	},
+	{
+		community: 'PP',
+		name: '자유게시판',
+		url: 'http://www.ppomppu.co.kr/zboard/zboard.php?id=freeboard',
+		imagedown: true,
+		active: true
+	},
+	{
+		community: 'RW',
+		name: '유머게시판',
+		url: 'http://bbs2.ruliweb.daum.net/gaia/do/ruliweb/default/community/325/list?bbsId=G005&pageIndex=1&itemId=143',
+		active: true
+	},
+	{
+		community: 'CK',
+		name: '자유게시판',
+		url: 'http://www.82cook.com/entiz/enti.php?bn=15',
 		active: true
 	}
 ]
@@ -185,8 +237,18 @@ db.system.js.save({
 				retVal.ntf += doc.ntf;
 				retVal.cnt += doc.cnt;
 			});
+
+			if (ntfmax < retVal.ntf) {
+				ntfmax = retVal.ntf;
+			}
+
 			return retVal;
 		};
+
+		var finalizeF = function (key, reduceVal) {
+			reduceVal.ntf = reduceVal.ntf / ntfmax;
+			return reduceVal;
+		}
 
 		var now = new ISODate();
 		var date = new ISODate();
@@ -196,7 +258,11 @@ db.system.js.save({
 			out: { replace: strCollection },
 			query: {
 				keywords: { $exists: true, $not: { $eq: false } },
-				date: { $gt: date }
+				date: { $gt: date },
+				finalize: finalizeF,
+				scope: {
+					ntfmax: 0
+				}
 			}
 		});
 
