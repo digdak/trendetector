@@ -145,6 +145,21 @@ ul {
 .dd {
     background: #A2A7BD;
 }
+.mp {
+    background: #660066;
+}
+.bd {
+    background: #006400;
+}
+.pp {
+    background: #0040D0;
+}
+.rw {
+    background: #BB6688;
+}
+.ck {
+    background: #b5d592;
+}
 
 /*#graph {
     height: 150px;  

@@ -14,9 +14,17 @@ import trendetector.mongodb.MongoDB;
 public class ListCrawlEngine {
 
 	public static void main(String[] args) throws InterruptedException {
-		Document where = new Document("active", true);
-		MongoDatabase db = MongoDB.create();
+		String host = "127.0.0.1";
+		int port = 27017;
+		String database = "trendetector";
+		switch (args.length) {
+		case 3:  database = args[2];
+		case 2: port = Integer.parseInt(args[1]);
+		case 1: host = args[0];
+		}
+		MongoDatabase db = MongoDB.create(host, port, database);
 		
+		Document where = new Document("active", true);
 		while (true) {
 			try {
 				db.getCollection("board").find(where).forEach((Document doc) -> {
@@ -27,7 +35,7 @@ public class ListCrawlEngine {
 					
 					System.out.println(new Date() + "\t[Crawl]\t" + community + "\t" + name + "\t" + url);
 					try {
-						new ArticleCrawler(board_id, community, url).run();
+						new ArticleCrawler(db, board_id, community, url).run();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

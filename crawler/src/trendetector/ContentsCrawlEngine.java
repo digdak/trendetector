@@ -20,7 +20,15 @@ import com.mongodb.client.MongoDatabase;
 public class ContentsCrawlEngine {
 	
 	public static void main(String[] args) throws ClassNotFoundException, InterruptedException {
-		MongoDatabase db = MongoDB.create();
+		String host = "127.0.0.1";
+		int port = 27017;
+		String database = "trendetector";
+		switch (args.length) {
+		case 3:  database = args[2];
+		case 2: port = Integer.parseInt(args[1]);
+		case 1: host = args[0];
+		}
+		MongoDatabase db = MongoDB.create(host, port, database);
 		
 		Document where = new Document("contents", new Document("$exists", false));
 		Document orderby = new Document("date", 1);
@@ -66,8 +74,8 @@ public class ContentsCrawlEngine {
 								String imageUrl = image.attr("src");
 								String filename = doc.getObjectId("_id") + "_" + image.hashCode()
 										+ imageUrl.substring(imageUrl.lastIndexOf('.'));
-								FileURL.download(imageUrl, "public\\images\\" + 
-										board_id.toString() + "\\" + filename);
+								FileURL.download(imageUrl, "public/images/" + 
+										board_id.toString() + "/" + filename);
 								image.select("img").attr("src", "/images/" +  board_id.toString() + "/" + filename);
 							}
 							
@@ -78,19 +86,19 @@ public class ContentsCrawlEngine {
 							new Document("_id", doc.getObjectId("_id")),
 							new Document("$set", new Document("contents", contents))
 						);
-						System.out.println(new Date() + "\t[DONE] " + doc.getObjectId("_id") + 
-								"\t" + community + 
-								"\t" + board_id);
+//						System.out.println(new Date() + "\t[DONE] " + doc.getObjectId("_id") + 
+//								"\t" + community + 
+//								"\t" + board_id);
 						
 					} catch (Exception e) {
-						e.printStackTrace();
 						db.getCollection("article").updateOne(
 								new Document("_id", doc.getObjectId("_id")),
 								new Document("$set", new Document("contents", false))
 							);
-						System.out.println(new Date() + "\t[FAIL] " + doc.getObjectId("_id") + 
+						System.err.println(new Date() + "\t[FAIL] " + doc.getObjectId("_id") + 
 								"\t" + community + 
 								"\t" + board_id);
+						e.printStackTrace();
 					}
 				});
 					

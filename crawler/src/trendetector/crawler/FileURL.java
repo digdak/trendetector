@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.SocketException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -48,10 +49,16 @@ public class FileURL {
 	}
 	
 	public static String getHtml(String url, String charset) throws  IOException {
+		HttpResponse res = null;
 		HttpGet get = new HttpGet(url);
 		get.addHeader("Referer", url);
-		HttpResponse res = httpClient.execute(get);
-		
+		try {
+			res = httpClient.execute(get);
+		} catch (SocketException se) {
+			httpClient = HttpClientBuilder.create()
+					.setDefaultRequestConfig(config).build();
+			throw se;
+		}
 		StringBuffer sb = new StringBuffer();
 		InputStreamReader is = new InputStreamReader(res.getEntity().getContent(), charset);
 		BufferedReader br = new BufferedReader(is);
@@ -62,6 +69,7 @@ public class FileURL {
 		}
 		
 		is.close();
+		get.releaseConnection();
 		return sb.toString();
 	}
 }

@@ -98,38 +98,41 @@ router.get('/view', function (req, res, next) {
     res.render('view', { title: article_id, page: page, article_id: article_id });
 });
 
-router.get('/article/list', function (req, res, next) {
+router.post('/article/list', function (req, res, next) {
     var page = req.query.page;
-    var community = req.query.community;
-    var keyword = req.query.keyword;
+    var keyword = req.body.keyword;
+    var community = req.body["community[]"];
 
     if (page === undefined || page === '') {
         page = 1;
     }
     page = (page - 1) * LIMIT;
 
-    model_keyword.get_keyword_info(function (data) {
-        var where = { 'contents': { '$exists': true } };
+    var where = {
+        'contents': { '$exists': true },
+        'keywords': { '$exists': true }
+    };
 
-        if (data !== undefined) {
-            where._id = {'$in': data.article};
+    if (keyword !== undefined) {
+        where["keywords.keyword"] = keyword;
+    }
+
+    if (community !== undefined && community.length > 0) {
+        if (!Array.isArray(community)) {
+            community = [ community ];
         }
+        where.community = {'$in': community};
+    }
 
-        if (community !== undefined) {
-            where.community = community;
-        }
-
-        model_article.get_articlelist(function (article_list, total_cnt) {
-            var result = {};
-            result.totalcount = total_cnt;
-            result.limits = LIMIT;
-            result.datas = article_list;
-            res.json(result);
-        })(req.db, page, LIMIT, where);
-
-    })(req.db, keyword);
-
+    model_article.get_articlelist(function (article_list, total_cnt) {
+        var result = {};
+        result.totalcount = total_cnt;
+        result.limits = LIMIT;
+        result.datas = article_list;
+        res.json(result);
+    })(req.db, page, LIMIT, where);
 });
+
 
 
 router.get('/article/:id', function (req, res, next) {
@@ -140,10 +143,24 @@ router.get('/article/:id', function (req, res, next) {
     })(req.db, article_id);
 });
 
+
 router.get('/keyword/list', function (req, res, next) {
-    model_keyword.get_keywordlist_by_community(function (data) {
-        res.json(data);
-    })(req.db);
+    var term = req.query.term;
+/*
+    if (term == undefined) {
+        var err = new Error('Not Valid');
+        err.status = 403;
+        return next(err);
+    }
+*/
+    model_keyword.get_keywords(function (batch_time, keyword_list) {
+        var result = {};
+        result.batch_time = batch_time;
+        result.keywords = keyword_list;
+        res.json(result);
+
+    })(req.db, term);
+
 });
 
 router.get('/community/list', function (req, res) {
@@ -156,5 +173,6 @@ router.get('/community/list', function (req, res) {
         }
     );
 });
+
 
 module.exports = router;

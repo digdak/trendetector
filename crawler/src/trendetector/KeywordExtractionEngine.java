@@ -45,10 +45,19 @@ public class KeywordExtractionEngine {
 
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws InterruptedException {
+		String host = "127.0.0.1";
+		int port = 27017;
+		String database = "trendetector";
+		switch (args.length) {
+		case 3:  database = args[2];
+		case 2: port = Integer.parseInt(args[1]);
+		case 1: host = args[0];
+		}
+		MongoDatabase db = MongoDB.create(host, port, database);
+		
 		Komoran komoran = new Komoran("crawler/models-full/");
 		komoran.setUserDic("crawler/models-full/dic.user");
 		komoran.setFWDic("crawler/models-full/fwd.user");
-		MongoDatabase db = MongoDB.create();
 		
 		Document where = new Document();
 		Document whereContents = new Document();
@@ -81,8 +90,8 @@ public class KeywordExtractionEngine {
 					
 					try {
 						contents = Jsoup.parse(contents).text();
-						contents = contents.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`|.|,]", " @ ");
-						subject = subject.replaceAll("[\\n|\\r|(|)|\\[|\\]|{|}|'|“|”|\"|`|.|,]", " @ ");
+						contents = contents.replaceAll("[\\n|\\r|\\t|(|)|\\[|\\]|{|}|'|“|”|\"|`|.|,]", " @ ");
+						subject = subject.replaceAll("[\\n|\\r|\\t|(|)|\\[|\\]|{|}|'|“|”|\"|`|.|,]", " @ ");
 						List<List<Pair<String, String>>> result = null;
 						
 						result = komoran.analyze(subject);
@@ -92,14 +101,14 @@ public class KeywordExtractionEngine {
 							
 							for (Pair<String, String> mainKeyword : keys.getFirst()) {
 								words.add(new Pair<String, Byte>(
-										mainKeyword.getFirst(), 
+										mainKeyword.getFirst().trim(), 
 										getStatus(true, true, mainKeyword.getSecond())
 								));
 							}
 							
 							for (Pair<String, String> subKeyword : keys.getSecond()) {
 								words.add(new Pair<String, Byte>(
-										subKeyword.getFirst(), 
+										subKeyword.getFirst().trim(), 
 										getStatus(true, false, subKeyword.getSecond())
 								));
 							}
@@ -116,19 +125,20 @@ public class KeywordExtractionEngine {
 							
 							for (Pair<String, String> mainKeyword : keys.getFirst()) {
 								words.add(new Pair<String, Byte>(
-										mainKeyword.getFirst(), 
+										mainKeyword.getFirst().trim(), 
 										getStatus(false, true, mainKeyword.getSecond())
 								));
 							}
 							
 							for (Pair<String, String> subKeyword : keys.getSecond()) {
 								words.add(new Pair<String, Byte>(
-										subKeyword.getFirst(), 
+										subKeyword.getFirst().trim(), 
 										getStatus(false, false, subKeyword.getSecond())
 								));
 							}
 						}
 						
+						double tfmax = 0;
 						int totalwordcnt = words.size();
 						for (Pair<String, Byte> word : words) {
 							double tf = (double)1 / (double)totalwordcnt;
@@ -137,13 +147,13 @@ public class KeywordExtractionEngine {
 							
 							/* check subject */
 							if ((status & check) > 0) {
-								tf *= 5;
+								tf *= 4;
 							}
 							
 							/* check main key */
 							check <<= 1;
 							if ((status & check) > 0) {
-								tf *= 2;
+								tf *= 3;
 							}
 							
 							/* check NNP */
@@ -157,7 +167,11 @@ public class KeywordExtractionEngine {
 							if (before != null) {
 								tf = tf + before;
 							}
-
+							
+							if (tfmax < tf) {
+								tfmax = tf;
+							}
+							
 							hashMap.put(word.getFirst(), tf);
 						}
 						
@@ -168,7 +182,7 @@ public class KeywordExtractionEngine {
 							String key = keys.next();
 							Document keyword = new Document();
 							keyword.append("keyword", key);
-							keyword.append("tf", hashMap.get(key));
+							keyword.append("tf", hashMap.get(key) / tfmax);
 							keywords.add(keyword);
 						}
 						
@@ -176,15 +190,15 @@ public class KeywordExtractionEngine {
 							new Document("_id", doc.getObjectId("_id")),
 							new Document("$set", new Document("keywords", keywords))
 						);
-						System.out.println(new Date() + "\t[DONE] " + doc.getObjectId("_id"));
+//						System.out.println(new Date() + "\t[DONE] " + doc.getObjectId("_id"));
 						
 					} catch (Exception e) {
-						e.printStackTrace();
 						db.getCollection("article").updateOne(
 								new Document("_id", doc.getObjectId("_id")),
 								new Document("$set", new Document("keywords", false))
 							);
-						System.out.println(new Date() + "\t[FAIL] " + doc.getObjectId("_id"));
+						System.err.println(new Date() + "\t[FAIL] " + doc.getObjectId("_id"));
+						e.printStackTrace();
 					}
 				});
 					

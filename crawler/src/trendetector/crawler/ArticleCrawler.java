@@ -9,8 +9,8 @@ import org.bson.types.ObjectId;
 import trendetector.crawler.parser.ArticleListParser;
 import trendetector.crawler.parser.ArticleListParserFactory;
 import trendetector.crawler.parser.ArticleParseError;
-import trendetector.mongodb.MongoDB;
 
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 
@@ -19,8 +19,10 @@ public class ArticleCrawler implements Runnable {
 	private ObjectId board_id;
 	private String community;
 	private String url;
+	private MongoDatabase db;
 	
-	public ArticleCrawler(ObjectId board_id, String community, String url) throws Exception {
+	public ArticleCrawler(MongoDatabase db, ObjectId board_id, String community, String url) throws Exception {
+		this.db = db;
 		this.board_id = board_id;
 		this.community = community;
 		this.url = url;
@@ -43,7 +45,8 @@ public class ArticleCrawler implements Runnable {
 		long now = new Date().getTime();
 		ArticleListParser parser = ArticleListParserFactory.create(community, url);
 		ArticleParseError callbackParseError = (e, article) -> {
-			System.out.println(article.getArticleNo());
+			if (article != null)
+				System.err.println(article.getArticleNo());
 			e.printStackTrace();
 		};
 		
@@ -71,17 +74,21 @@ public class ArticleCrawler implements Runnable {
 					
 					where.append("article_no", article.getArticleNo());
 					
-					UpdateResult ur = MongoDB.db.getCollection("article")
+					if (this.db.getCollection("article").count(where) > 0) {
+						doc.remove("date");
+					}
+					
+					UpdateResult ur = this.db.getCollection("article")
 							.updateOne(
 								where, update, opt
 							);
 					
 					if (ur.getMatchedCount() == 0) {
-						System.out.println(
-							new Date() + "\t[DONE] "
-							+ ur.getUpsertedId().asObjectId().getValue()
-							+ "\t" + article.getSubject()
-						);
+//						System.out.println(
+//							new Date() + "\t[DONE] "
+//							+ ur.getUpsertedId().asObjectId().getValue()
+//							+ "\t" + article.getSubject()
+//						);
 					}
 				}
 			} while (parser.nextPage());

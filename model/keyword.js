@@ -20,40 +20,31 @@ exports.get_keywordlist_by_community = function (next) {
     }
 }
 
-exports.get_keyword_info = function (next) {
-    return function (db, keyword) {
-        if(keyword === undefined) {
-            return next(undefined);
-        }
-
-        db.collection('keyword').findOne({ _id: keyword }, {}, function (err, data) {
-            if (err) {
-                throw err;
-            }
-            next(data);
-        });
-    }
-}
-
 exports.get_article_ids_by_keyword = function (next) {
-    return function (db, keyword, hour) {
+    return function (db, keyword, term, batch_time) {
+
         if(keyword === undefined) {
             return next(undefined);
         }
-
+        var split_result = term.split("_");
+        var m = Number(split_result[1]);
+        var n = Number(split_result[2]);
         var where = {
             "keywords.keyword": keyword
         };
 
-        if (hour !== undefined) {
-            var date = new Date();
-            date.setHours(date.getHours() - hour);
-            where.date = {
-                "$gt": date
-            };
-        }
+        var maxdate = new Date(batch_time.getTime());
+        var mindate = new Date(batch_time.getTime());
 
-        db.collection('article').find(where, { _id: true }).toArray(function (err, article_list) {
+        maxdate.setHours(maxdate.getHours()-m);
+        mindate.setHours(mindate.getHours()-n);
+
+        where.date = {
+            "$gt": mindate,
+            "$lt": maxdate
+        };
+
+        db.collection('article').find(where, { _id: true, date: true }).toArray(function (err, article_list) {
             if (err) {
                 throw err;
             }
@@ -78,19 +69,13 @@ exports.get_keywords_batch_times_by_term = function (next) {
 }
 
 exports.get_keywords = function (next) {
-    console.log("getgetget");
-    console.log(next);
-    return function (db, hour) {
-        console.log("get_keywords");
-        console.log("hour = " + hour);
-        db.collection('batch_log').findOne({ _id: Number(hour) }, {}, function (err, doc) {
+    return function (db, term) {
+        db.collection('batch_log').findOne({ _id: term }, {}, function (err, doc) {
             if (err) {
                 throw err;
             }
 
-            console.log("i am hour");
-            console.log(doc);
-            if (doc === undefined) {
+            if (doc === undefined || doc === null) {
                 return next(undefined);
             }
 
@@ -98,12 +83,16 @@ exports.get_keywords = function (next) {
                 return next(undefined);
             }
 
-            db.collection('keyword_' + hour).find().sort({rank: 1}).toArray(function (err, keyword_list) {
-                if (err) {
-                    throw err;
-                }
-                console.log("get_keywords next");        
-                next(hour, doc.batch_time, keyword_list);
+            db.collection(term)
+                .find({rank: {$exists: true}})
+                .sort({rank: 1}).limit(20).toArray(function (err, keyword_list) {
+                    if (err) {
+                        throw err;
+                    }
+                    keyword_list.sort(function(a, b) {
+                        return b.ntfidf - a.ntfidf;
+                    });
+                    next(doc.batch_time, keyword_list);
             });
         });
     }
