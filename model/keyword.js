@@ -93,11 +93,8 @@ exports.get_keywords = function (next) {
                         console.log(err);
                         throw err;
                     }
-                    keyword_list.sort(function(a, b) {
-                        return b.ntfidf - a.ntfidf;
-                    });
-                    console.log(keyword_list);
-                    next(db, term, doc.batch_time, keyword_list);
+                    
+                    next(doc.batch_time, keyword_list);
             });
         });
     }
