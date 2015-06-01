@@ -71,7 +71,7 @@ function createGraph(nodes, relations) {
 }
 
 function getGraph() {
-	$.getJSON('/graph/nodes_with_rel.json', function (data) {
+	$.getJSON('/graph/nodes_with_rel/3.json', function (data) {
 		console.log("in getGraph");
 		console.log(data);
 		nodes = data.keywords;

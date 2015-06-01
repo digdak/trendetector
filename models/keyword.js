@@ -96,9 +96,22 @@ Keyword.get = function (id, callback) {
     });
 };
 
-Keyword.getAll = function (time, callback) {
+Keyword.getByKeyword = function (keyword, term, callback) {
     var query = [
-        'MATCH (keyword:Keyword {time:'+time+'})',
+        'MATCH (keyword:Keyword {keyword:'+keyword+', term:'+term+'})',
+        'RETURN keyword',
+    ].join('\n');
+
+    db.query(query, null, function (err, results) {     
+        if (err) return callback(err);
+        var keyword = new Keyword(results[0]['keyword']);
+        callback(null, keyword);
+    });
+};
+
+Keyword.getAll = function (term, callback) {
+    var query = [
+        'MATCH (keyword:Keyword {term:'+term+'})',
         'RETURN keyword',
     ].join('\n');
 

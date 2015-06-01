@@ -28,28 +28,27 @@ router.get('/graph/nodes_with_rel/:term.json', function (req, res, next) {
         if (keywords.length != 0) {
             // get orgin graph from db
             Keyword.getPairs(function (err, results) {        
+
+                console.log("get pair");
                 if (err) return next(err);
                 res.json({keywords:keywords,relations:results});            
             });
         } else {
-            // make new graph
-            model_keyword.get_article_ids_by_keyword(function(arr) {
-                Keyword.getAll(function (err, keywords) {        
-                    if (err) return next(err);
-                    
-                    Keyword.getPairs(function (err, results) {        
-                        if (err) return next(err);
-                        res.json({keywords:keywords,relations:results});            
-                    });
-                    // res.render('keywords', {'keywords': keywords});
-                });
-            })(req.db, keyword, term);  // HOUR FROM NOW
+            console.log("create keyword graph");
+            res.redirect('/graph/create/'+term);
         }
-        // res.render('keywords', {'keywords': keywords});
-    });
+            
+    });    
+});
 
-    
-    
+// make new graph
+router.get('/graph/create/:term', function(req, res, next) {    
+    var term = req.params.term;
+    console.log("routing /graph/create/" + term);
+    model_keyword.get_keywords(model_keyword.create_node(model_keyword.create_graph(function(term) {
+        res.redirect('/graph/nodes_with_rel/'+term+'.json');
+    })))(req.db, term); // end of get keywords            
+
 });
 
 router.get('/graph/relations', function (req, res, next) {
