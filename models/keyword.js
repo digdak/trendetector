@@ -225,18 +225,16 @@ Keyword.create_nodes = function (next) {
 
 Keyword.create_graph = function (next) {    
     return function(term, keyword_list, keywords_with_article) {           
-        keyword_list.forEach(function(keyword_out, i) {
-            console.log(keyword_out.id);                                                          
+        keyword_list.forEach(function(keyword_out, i) {                                                                
             var article_size_with_out = keywords_with_article[keyword_out.id].length;
-            console.log("out iterator  = " + i + " size = " + article_size_with_out); 
+            console.log("out iterator  = " + i + " keyword = " + keyword_out.id + " size = " + article_size_with_out); 
             
             if (article_size_with_out == 0) {
                 console.log("out 0 pass");
                 return;
             }
 
-            keyword_list.forEach(function (keyword_in, j) {
-                console.log("inner iterator  = " + j);
+            keyword_list.forEach(function (keyword_in, j) {                
                 if (j==i) {
                     console.log("same pass");        
                     return;
@@ -244,25 +242,33 @@ Keyword.create_graph = function (next) {
                     // check intersection with articles
                     // if condition is satisfied, make edge                                        
                     var article_size_with_in = keywords_with_article[keyword_in.id].length;
-                    console.log("inner iterator  = " + j + " size = " + article_size_with_in); 
+                    console.log("inner iterator  = " + j + " keyword = " + keyword_in.id  + " size = " + article_size_with_in); 
 
                     if (article_size_with_in == 0) {
                         console.log("inner 0 pass");
                         return;
                     }
 
-                    var intersection_size = keywords_with_article[keyword_out.id].map(function(obj) {return obj._id}).filter(function(n) {
-                        return (keywords_with_article[keyword_in.id].map(function(obj) {return obj._id}).indexOf(n) == -1)
-                    }).length;
+                    // if (i == 2 && j == 3) {    
+                    //     console.log(keywords_with_article[keyword_out.id].map(function(obj) {return obj._id}));
+                    //     console.log(keywords_with_article[keyword_in.id].map(function(obj) {return obj._id}));
+                    // }
 
-                    console.log("intersection_size = " + intersection_size);
+                    var intersection_size = keywords_with_article[keyword_out.id].map(function(obj) {return obj._id + ""}).filter(function(n) {
+                        return (keywords_with_article[keyword_in.id].map(function(obj) {return obj._id + ""}).indexOf(n) != -1)
+                    });
 
+                    console.log("intersection_size = " + intersection_size + " length = " + intersection_size.length);
+
+                    intersection_size = intersection_size.length;
                     var a = (intersection_size/article_size_with_out).toPrecision(8);
                     var b = (intersection_size/article_size_with_in).toPrecision(8);
                     console.log("calculate a b : " + a + "  " + b);
 
-                    // if (a > 0.1 || b > 0.1) {
-                    if (intersection_size > 0) {
+                    var cohesion_value = (intersection_size/Math.min(article_size_with_out, article_size_with_in)).toPrecision(8);
+
+                    if (cohesion_value > 0.3) {
+                    // if (intersection_size > 0) {
                         Keyword.getByKeyword(keyword_out.id, term, function (m){
                             Keyword.getByKeyword(keyword_in.id, term, function (n) {
                                 m.follow(n, function(err) {                                    
