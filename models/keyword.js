@@ -2,8 +2,9 @@
 // Keyword model logic.
 
 var neo4j = require('neo4j');
-var db = new neo4j.GraphDatabase('http://neo4j:1234@localhost:7474');
+var graph_db = new neo4j.GraphDatabase('http://neo4j:1234@localhost:7474');
 
+var model_keyword = require('../model/keyword.js');
 // private constructor:
 
 var Keyword = module.exports = function Keyword(_node) {
@@ -45,7 +46,7 @@ Keyword.prototype.unfollow = function (other, callback) {
         otherId: other.id,
     };
 
-    db.query(query, params, function (err) {
+    graph_db.query(query, params, function (err) {
         callback(err);
     });
 };
@@ -64,7 +65,7 @@ Keyword.prototype.getFollowingAndOthers = function (callback) {
     };
 
     var keyword = this;
-    db.query(query, params, function (err, results) {    	
+    graph_db.query(query, params, function (err, results) {    	
         if (err) return callback(err);
 
         var following = [];
@@ -90,32 +91,42 @@ Keyword.prototype.getFollowingAndOthers = function (callback) {
 // static methods:
 
 Keyword.get = function (id, callback) {
-    db.getNodeById(id, function (err, node) {    	
+    graph_db.getNodeById(id, function (err, node) {    	
         if (err) return callback(err);
         callback(null, new Keyword(node));
     });
 };
 
 Keyword.getByKeyword = function (keyword, term, callback) {
+    console.log("in getByKeyword keyword = " + keyword + " term = " + term);
     var query = [
-        'MATCH (keyword:Keyword {keyword:'+keyword+', term:'+term+'})',
+        'MATCH (keyword:Keyword {id:{keyword}, term:{term}})',
         'RETURN keyword',
     ].join('\n');
 
-    db.query(query, null, function (err, results) {     
-        if (err) return callback(err);
+    var params = {
+        'keyword': keyword,
+        'term': term
+    };
+
+    graph_db.query(query, params, function (err, results) {     
+        if (err) {
+            console.log("in getByKeyword err : " + err);
+            return callback(err);
+        }           
         var keyword = new Keyword(results[0]['keyword']);
-        callback(null, keyword);
+        console.log("in getByKeyword get : " + keyword);
+        callback(keyword);
     });
 };
 
 Keyword.getAll = function (term, callback) {
     var query = [
-        'MATCH (keyword:Keyword {term:'+term+'})',
+        'MATCH (keyword:Keyword {term:"'+term+'"})',
         'RETURN keyword',
     ].join('\n');
 
-    db.query(query, null, function (err, results) {    	
+    graph_db.query(query, null, function (err, results) {    	
         if (err) return callback(err);
         var keywords = results.map(function (result) {
             return new Keyword(result['keyword']);
@@ -130,7 +141,7 @@ Keyword.getPairs = function (callback) {
         'RETURN n, m',
     ].join('\n');
 
-    db.query(query, null, function (err, results) {    	
+    graph_db.query(query, null, function (err, results) {    	
     	console.log(results);
         if (err) return callback(err);
         var keywords = results.map(function (result) {
@@ -145,25 +156,143 @@ Keyword.getPairs = function (callback) {
 // creates the keyword and persists (saves) it to the db, incl. indexing it:
 Keyword.create = function (data, callback) {
     // construct a new instance of our class with the data, so it can
-    // validate and extend it, etc., if we choose to do that in the future:
-    var node = db.createNode(data);
-    var keyword = new Keyword(node);
-
+    // validate and extend it, etc., if we choose to do that in the future:    
+    var node = graph_db.createNode(data);
+    var keyword = new Keyword(node._data.data);        
     // but we do the actual persisting with a Cypher query, so we can also
     // apply a label at the same time. (the save() method doesn't support
     // that, since it uses Neo4j's REST API, which doesn't support that.)
-    var query = [
+    var query = [        
         'CREATE (keyword:Keyword {data})',
         'RETURN keyword',
     ].join('\n');
 
     var params = {
-        data: data
+        'data': data
     };
 
-    db.query(query, params, function (err, results) {
-        if (err) return callback(err);
+    graph_db.query(query, params, function (err, results) {
+        if (err) {
+            console.log("error in create node db query : " + err);            
+            console.log(params);            
+            return callback(err);
+        }
         var keyword = new Keyword(results[0]['keyword']);
         callback(null, keyword);
     });
 };
+
+Keyword.create_nodes = function (next) {    
+    return function(db, term, batch_time, keyword_list) {                
+        // console.log("term = " + term + " batch_time = " + batch_time +  " keywords = " + keyword_list);
+        var keywords_with_article = {};     // {'keyword': [article_id,], }
+        var keyword_list_length = keyword_list.length;
+        console.log("length = " + keyword_list_length);     
+        keyword_list.forEach(function (item, i) {                            
+            model_keyword.get_article_ids_by_keyword(function(arr) {                                
+                
+                // make node                                                                
+                item.id = item._id;
+                delete item._id;
+                item.ntf = item.value.ntf;
+                item.cnt = item.value.cnt;
+                item.ntfidf = item.value.ntfidf;
+                item.ntfidf1 = item.value.ntfidf1;
+                item.ntfidf2 = item.value.ntfidf2;
+                delete item.value;
+                item.term = term;
+                item.created_time = batch_time;        
+         
+                Keyword.create(item, function(err, keyword_result) {
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
+
+                    keywords_with_article[item.id] = arr;
+                    // console.log("i = "+ i +"  length = " + Object.keys(keywords_with_article).length + " arr = "  + arr);  
+                    if (keyword_list_length == Object.keys(keywords_with_article).length) {                                                
+                        console.log("gogo create graph");
+                        next(term, keyword_list, keywords_with_article);
+                    }
+                });  
+     
+            })(db, item._id, term, batch_time);  // HOUR FROM NOW            
+        });
+        
+    }
+}
+
+Keyword.create_graph = function (next) {    
+    return function(term, keyword_list, keywords_with_article) {           
+        keyword_list.forEach(function(keyword_out, i) {
+            console.log(keyword_out.id);                                                          
+            var article_size_with_out = keywords_with_article[keyword_out.id].length;
+            console.log("out iterator  = " + i + " size = " + article_size_with_out); 
+            
+            if (article_size_with_out == 0) {
+                console.log("out 0 pass");
+                return;
+            }
+
+            keyword_list.forEach(function (keyword_in, j) {
+                console.log("inner iterator  = " + j);
+                if (j==i) {
+                    console.log("same pass");        
+                    return;
+                } else {
+                    // check intersection with articles
+                    // if condition is satisfied, make edge                                        
+                    var article_size_with_in = keywords_with_article[keyword_in.id].length;
+                    console.log("inner iterator  = " + j + " size = " + article_size_with_in); 
+
+                    if (article_size_with_in == 0) {
+                        console.log("inner 0 pass");
+                        return;
+                    }
+
+                    var intersection_size = keywords_with_article[keyword_out.id].map(function(obj) {return obj._id}).filter(function(n) {
+                        return (keywords_with_article[keyword_in.id].map(function(obj) {return obj._id}).indexOf(n) == -1)
+                    }).length;
+
+                    console.log("intersection_size = " + intersection_size);
+
+                    var a = (intersection_size/article_size_with_out).toPrecision(8);
+                    var b = (intersection_size/article_size_with_in).toPrecision(8);
+                    console.log("calculate a b : " + a + "  " + b);
+
+                    // if (a > 0.1 || b > 0.1) {
+                    if (intersection_size > 0) {
+                        Keyword.getByKeyword(keyword_out.id, term, function (m){
+                            Keyword.getByKeyword(keyword_in.id, term, function (n) {
+                                m.follow(n, function(err) {                                    
+                                    // flagFollowEnd = true;
+                                    if (err) {
+                                        console.log("error in follow callback func : " + err);
+                                        return next(err);
+                                    } 
+                                    console.log("create keyword edge : " + m.id + "  " + n.id);        
+
+                                });
+                            
+                            });
+                            
+                        });
+                    }
+
+                    if (i == keyword_list.length - 1 && j == keyword_list.length - 1) {
+                        console.log("set time out for end at i = " + i + " j = " + j);
+                        return next(term);
+                        setTimeout(function() {
+                            console.log("gogo end create graph!!!");
+                            return next(term);
+                        }, 3000);
+                    }
+                    
+                }
+            
+            });
+        });
+        
+    }
+}

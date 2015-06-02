@@ -18,12 +18,16 @@ router.get('/graph/nodes', function (req, res, next) {
     });
 });
 
-router.get('/graph/nodes_with_rel/:term.json', function (req, res, next) {
+router.get('/graph/nodes_with_rel/:term', function (req, res, next) {
     var term = req.params.term;
+    console.log("routing /graph/nodes_with_rel/" + term);
     // Check is there graph on time 
     // if not make graph,
     Keyword.getAll(term, function (err, keywords) {        
-        if (err) return next(err);
+        if (err) {
+            console.log(err);
+            return next(err);
+        }
         
         if (keywords.length != 0) {
             // get orgin graph from db
@@ -45,10 +49,10 @@ router.get('/graph/nodes_with_rel/:term.json', function (req, res, next) {
 router.get('/graph/create/:term', function(req, res, next) {    
     var term = req.params.term;
     console.log("routing /graph/create/" + term);
-    model_keyword.get_keywords(model_keyword.create_node(model_keyword.create_graph(function(term) {
+    model_keyword.get_keywords(Keyword.create_nodes(Keyword.create_graph(function(term) {
+        console.log("do redirect");
         res.redirect('/graph/nodes_with_rel/'+term+'.json');
-    })))(req.db, term); // end of get keywords            
-
+    })))(req.db, term); // end of get keywords
 });
 
 router.get('/graph/relations', function (req, res, next) {
@@ -153,10 +157,11 @@ router.get('/keyword/list', function (req, res, next) {
         return next(err);
     }
 */
-    model_keyword.get_keywords(function (batch_time, keyword_list) {
+    model_keyword.get_keywords(function (db, term, batch_time, keyword_list) {
         var result = {};
         result.batch_time = batch_time;
-        result.keywords = keyword_list;
+        result.keywords = keyword_list;     
+        console.log(keyword_list);   
         res.json(result);
 
     })(req.db, term);

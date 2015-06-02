@@ -20,12 +20,14 @@ exports.get_keywordlist_by_community = function (next) {
     }
 }
 
+// use it for making graph
 exports.get_article_ids_by_keyword = function (next) {
     return function (db, keyword, term, batch_time) {
 
         if(keyword === undefined) {
             return next(undefined);
         }
+
         var split_result = term.split("_");
         var m = Number(split_result[1]);
         var n = Number(split_result[2]);
@@ -42,7 +44,7 @@ exports.get_article_ids_by_keyword = function (next) {
         where.date = {
             "$gt": mindate,
             "$lt": maxdate
-        };
+        };        
 
         db.collection('article').find(where, { _id: true, date: true }).toArray(function (err, article_list) {
             if (err) {
@@ -68,10 +70,11 @@ exports.get_keywords_batch_times_by_term = function (next) {
     }
 }
 
-exports.get_keywords = function (next) {
-    return function (db, term) {
+exports.get_keywords = function (next) {    
+    return function (db, term) {        
         db.collection('batch_log').findOne({ _id: term }, {}, function (err, doc) {
             if (err) {
+                console.log(err);
                 throw err;
             }
 
@@ -87,86 +90,15 @@ exports.get_keywords = function (next) {
                 .find({rank: {$exists: true}})
                 .sort({rank: 1}).limit(20).toArray(function (err, keyword_list) {
                     if (err) {
+                        console.log(err);
                         throw err;
                     }
                     keyword_list.sort(function(a, b) {
                         return b.ntfidf - a.ntfidf;
                     });
-                    next(doc.batch_time, keyword_list);
+                    console.log(keyword_list);
+                    next(db, term, doc.batch_time, keyword_list);
             });
         });
-    }
-}
-
-exports.create_nodes = function (next) {
-    console.log("create_nodes ccc");
-    console.log(next);
-    return function(term, batch_time, keywords) {
-        console.log("create_nodes");        
-        console.log("term = " + term + " batch_time = " + batch_time + " keywords = " + keywords);        
-        var keywords_with_article = {};     // {'keyword': [article_id,], }
-        for (var i=0; i<keywords.length; i++) {                    
-            model_keyword.get_article_ids_by_keyword(function(arr) {
-                keywords_with_article[keywords[i]] = arr;
-
-                // make node
-                keywords[i]['created_time'] = batch_time;
-                Keyword.create(keywords[i], function(err, keyword) {
-                    if (err) return next(err);
-                    
-                    console.log("create keyword node : " + keyword);
-                    if (i == keywords.length - 1) {
-                        console.log("create_nodes next");     
-                        next(term, keywords, keywords_with_article);
-                    }
-                });
-            })(req.db, keywords[i], term);  // HOUR FROM NOW
-        }
-    }
-}
-
-exports.create_graph = function (next) {
-    console.log("create_graph ccc");
-    console.log(next);
-    return function(term, keywords, keywords_with_article) {
-        for (var i=0; i<keywords.length; i++) {
-            var keyword_out = keywords[i]; 
-            var article_size_with_out = keywords_with_article[keyword_out].length;
-            
-            if (article_size_with_out == 0)
-                continue;
-
-            for (var j=0; j<keywords.length; j++) {
-                if (j==i) {
-                    continue;
-                } else {
-                    // check intersection with articles
-                    // if condition is satisfied, make edge
-                    
-                    var keyword_in = keywords[j];                    
-                    var article_size_with_in = keywords_with_article[keyword_in].length;
-
-                    if (article_size_with_in == 0)
-                        continue;
-
-                    var intersection_size = keywords_with_article[keyword_out].filter(function(n) {
-                        return (keywords_with_article[keyword_in].indexOf(n) != -1)
-                    }).length;
-
-                    
-                    if (intersection_size/article_size_with_out > 0.6 || 
-                        intersection_size/article_size_with_in > 0.6) {                        
-                        Keyword.getByKeyword(keyword_out[_id]).follow(Keyword.getByKeyword(keyword_out[_id]),
-                            function(err) {
-                                if (err) return next(err);
-                                console.log("create keyword edge : " + keyword_out + "  " + keyword_in);
-                            });
-                    }
-                }
-            
-            }   
-        }
-
-        next(term);
     }
 }
