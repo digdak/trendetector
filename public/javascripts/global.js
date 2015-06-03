@@ -20,6 +20,7 @@ $(document).ready(function () {
 
     // select multiple community
     selectMultipleCommunity();    
+    get_keyword_list();
 });
 
 // Functions =============================================================
@@ -144,5 +145,30 @@ function selectPage() {
         $(this).addClass("selected")
         $('#pagination a:not(.selected)').removeClass("selected");
         refreshContentList(page_num);
+    });
+}
+
+function get_keyword_list() {
+    console.log("called get_keyword_list");
+    var term_list = ["keyword_0_24", "keyword_24_72"]
+    $("#keyword_list").html("");       
+
+    term_list.forEach(function(term) {
+        $.getJSON('/keyword/list?term=' + term, function (data) {
+            console.log("loop = " + term);
+            // console.log("result = " + data.keywords);
+            var result = "";
+            var title_tokens = term.split("_");
+            var title = title_tokens[title_tokens.length-1];
+            result += "<div class='col-xs-6'><h4>최근 "+title+"시간 키워드</h4><ol>";
+            $.each(data.keywords, function () {
+                result+="<li>";
+                result+=this._id;
+                result+="</li>";
+            }); 
+            result += "</ol></div>";
+            console.log(result);
+            $("#keyword_list").append(result);       
+        });
     });
 }

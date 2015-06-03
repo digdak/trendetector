@@ -136,7 +136,7 @@ ul {
 }
 
 .site_select ul li.unselected {
-    background: #566778
+    background: #000000
 }
 
 .all_community {
@@ -185,4 +185,11 @@ ul {
     max-width: 400px;
     height: 400px;
     margin: auto;
+}
+
+#keyword_list {
+    height: 500px;  
+    background:#eeeeee;
+    padding: 10px 10px 10px 10px;
+    border-radius: 6px; 
 }
