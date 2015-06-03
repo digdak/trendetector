@@ -94,6 +94,11 @@ ul {
     margin: 0 5px 0 5px;
 }
 
+#pagination a.selected {
+    font-weight: bold;
+    font-size: 18px;
+}
+
 .control {
     height: 150px;  
     background:#aaa;
@@ -130,6 +135,14 @@ ul {
     font-size: 10pt;
 }
 
+.site_select ul li.unselected {
+    background: #566778
+}
+
+.all_community {
+    background: #223322
+}
+
 .clien {
     background: #3D4881;
 }
@@ -146,19 +159,19 @@ ul {
     background: #A2A7BD;
 }
 .mp {
-    background: #660066;
+    background: #FE5E00;
 }
 .bd {
-    background: #006400;
+    background: #232734;
 }
 .pp {
-    background: #0040D0;
+    background: #a5a5a5;
 }
 .rw {
-    background: #BB6688;
+    background: #0861B6;
 }
 .ck {
-    background: #b5d592;
+    background: #459F39;
 }
 
 /*#graph {
