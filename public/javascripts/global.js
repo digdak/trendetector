@@ -16,34 +16,40 @@ $(document).ready(function () {
     }
 
     // Populate the article table on initial page load
-    populateTable();
+    populateTable(undefined, undefined);
+
+    // select multiple community
+    selectMultipleCommunity();    
 });
 
 // Functions =============================================================
 function makePagenation(max_page) {
+    $("#pagination").html("");
     for (var i = parseInt(page)-2; i < parseInt(page); i++) {
         if (i <= 0)
             continue;
-        $("#pagination").append("<a href='/list?page="+i+"'>"+i+"</a>");
+        $("#pagination").append("<a href='#' value='"+i+"'>"+i+"</a>");
     }
 
-    $("#pagination").append("<a class='selected' href='/list?page="+page+"'>"+page+"</a>");    
+    $("#pagination").append("<a class='selected' href='#' value='"+i+"'>"+page+"</a>");    
 
     for (var i = parseInt(page)+1; i < parseInt(page)+4 && i < max_page; i++) {
-        $("#pagination").append("<a href='/list?page="+i+"'>"+i+"</a>");
+        $("#pagination").append("<a href='#' value='"+i+"'>"+i+"</a>");
     }
+
+    $("#previous_page").attr("value", parseInt(page)-1);
+    $("#next_page").attr("value", parseInt(page)+1);
 
     if(page == parseInt(max_page)) {
         $("#next_page").remove();
     } else if (page == 1) {
         $("#previous_page").remove();
     }
-
+    selectPage();
 }
 
 // Fill table with data
-function populateTable() {
-
+function populateTable(community, page) {
     // Empty content string
     var tableContent = '';
     var query = { };
@@ -85,7 +91,7 @@ function populateTable() {
         });
 
         // Inject the whole content string into our existing HTML table
-        $('#articleList table tbody').html(tableContent);
+        $('#articleList table tbody').html(tableContent);        
 
     });
 };
@@ -108,3 +114,35 @@ function showContents() {
         $('#contentsBody').html(data.contents);
     });
 };
+
+function selectMultipleCommunity() {
+    $('.site_select ul li').on("click", function() {
+        $(this).toggleClass("selected");
+        $(this).removeClass("unselected");
+        $('.site_select ul li:not(.selected)').addClass("unselected")
+        refreshContentList(1);        
+    });
+};
+
+function refreshContentList(page_num) {
+    // Populate the article table on initial page load
+    var community_list = $('.site_select ul li.selected').map(function() {
+        return $(this).attr("value");
+    }).get();
+
+    populateTable(community_list, page_num);
+
+    // select multiple community
+    // selectMultipleCommunity();
+};
+
+
+function selectPage() {
+    $('#pagination a').on("click", function() {
+        var page_num = $(this).attr("value");
+        page = page_num;
+        $(this).addClass("selected")
+        $('#pagination a:not(.selected)').removeClass("selected");
+        refreshContentList(page_num);
+    });
+}
