@@ -298,10 +298,16 @@ db.system.js.save({
 			}
 
 			var idf = Math.log((totalcnt + 1) / (kcnt + 1));
+			var ntfidf = doc.value.ntf * idf;
+			var ntfidf1 = Math.log(doc.value.ntf + 1.0) * idf;
+			var ntfidf2 = doc.value.ntf * Math.log(idf + 1.0);
 
 			bulkUpdate.find({ "_id": doc._id }).updateOne({
 				"$set": { 
-					"value.idf": idf
+					"value.idf": idf,
+					"value.ntfidf": ntfidf,
+					"value.ntfidf1": ntfidf1,
+					"value.ntfidf2": ntfidf2
 				}
 			});
 		});
@@ -313,50 +319,11 @@ db.system.js.save({
 		}
 
 		// ==== 키워드 순위 결정 ==== //
-		var docs = [];
-		var rank = 0;
-		db[strCollection].find(where).sort({ "value.ntf": 1 }).forEach(function (doc) {
-			docs[rank] = [];
-			docs[rank][0] = doc;
-			rank++;
-		});
-		var rank = 0;
-		db[strCollection].find(where).sort({ "value.idf": 1 }).forEach(function (doc) {
-			docs[rank][1] = doc;
-			rank++;
-		});
-		docs.forEach(function (item) {
-			var val = (item[0].value.ntf + item[1].value.idf) / 2;
-			db[strCollection].update(
-				{ "_id": item[0]._id }, 
-				{ "$set": { "value.nntf": val } }
-			);
-			db[strCollection].update(
-				{ "_id": item[1]._id }, 
-				{ "$set": { "value.nidf": val } }
-			);
-		});
-
-		var bulkRank = db[strCollection].initializeUnorderedBulkOp();
-		db[strCollection].find(where).forEach(function (doc) {
-			bulkRank.find({ "_id": doc._id }).updateOne({
-				"$set": { 
-					"ntfidf": Math.log(doc.value.ntf + 1) * Math.log(doc.value.idf + 1),
-					"nntfidf": doc.value.nntf * doc.value.nidf,
-				}
-			});
-		});
-		var result = bulkRank.execute();
-		if (result.nMatched == 0 
-		&& result.nUpserted == 0 
-		&& result.nModified == 0) {
-			return { "ok": false, "result": result };
-		}
 
 		/* NTFIDF순 Rank */
 		var bulkRank = db[strCollection].initializeUnorderedBulkOp();
 		var cnt = 1;
-		db[strCollection].find(where).sort({ "ntfidf": -1 }).forEach(function (doc) {
+		db[strCollection].find(where).sort({ "value.ntfidf": -1 }).forEach(function (doc) {
 			bulkRank.find({ "_id": doc._id }).updateOne({
 				"$set": { "rank": cnt }
 			});
@@ -372,9 +339,25 @@ db.system.js.save({
 		/* NTFIDF1순 Rank */
 		var bulkRank = db[strCollection].initializeUnorderedBulkOp();
 		var cnt = 1;
-		db[strCollection].find(where).sort({ "nntfidf": -1 }).forEach(function (doc) {
+		db[strCollection].find(where).sort({ "value.ntfidf1": -1 }).forEach(function (doc) {
 			bulkRank.find({ "_id": doc._id }).updateOne({
 				"$inc": { "rank": cnt }
+			});
+			cnt++;
+		});
+		var result = bulkRank.execute();
+		if (result.nMatched == 0 
+		&& result.nUpserted == 0 
+		&& result.nModified == 0) {
+			return { "ok": false, "result": result };
+		}
+
+		/* NTFIDF2순 Rank */
+		var bulkRank = db[strCollection].initializeUnorderedBulkOp();
+		var cnt = 1;
+		db[strCollection].find(where).sort({ "value.ntfidf2": -1 }).forEach(function (doc) {
+			bulkRank.find({ "_id": doc._id }).updateOne({
+				"$set": { "rank": (doc.rank + cnt) / 3 }
 			});
 			cnt++;
 		});
