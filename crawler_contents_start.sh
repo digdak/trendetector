@@ -1,0 +1,1 @@
+nohup java -jar crawler/bin/ContentsCrawler.jar 1> /dev/null 2> contents_error.log

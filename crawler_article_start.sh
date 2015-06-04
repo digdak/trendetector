@@ -1,0 +1,1 @@
+nohup java -jar crawler/bin/ArticleCrawler.jar 1> /dev/null 2> article_error.log
