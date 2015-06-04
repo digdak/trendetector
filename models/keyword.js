@@ -8,23 +8,23 @@ var model_keyword = require('../model/keyword.js');
 // private constructor:
 
 var Keyword = module.exports = function Keyword(_node) {
-    this._node = _node;
+	this._node = _node;
 }
 
 Object.defineProperty(Keyword.prototype, 'id', {
-    get: function () { return this._node.id; }
+	get: function () { return this._node.id; }
 });
 
 Object.defineProperty(Keyword.prototype, 'keyword', {
-    get: function () { return this._node.data['id']; }
+	get: function () { return this._node.data['id']; }
 });
 
 Object.defineProperty(Keyword.prototype, 'value', {
-    get: function () { return this._node.data['value']; }
+	get: function () { return this._node.data['value']; }
 });
 
 Object.defineProperty(Keyword.prototype, 'rank', {
-    get: function () { return this._node.data['rank']; }
+	get: function () { return this._node.data['rank']; }
 });
 
 
@@ -65,7 +65,11 @@ Keyword.prototype.getFollowingAndOthers = function (callback) {
     };
 
     var keyword = this;
+<<<<<<< HEAD
     graph_db.query(query, params, function (err, results) {     
+=======
+    graph_db.query(query, params, function (err, results) {    	
+>>>>>>> e498ecafd433a6db756019837cc5fca3c58feaf9
         if (err) return callback(err);
 
         var following = [];
@@ -91,7 +95,11 @@ Keyword.prototype.getFollowingAndOthers = function (callback) {
 // static methods:
 
 Keyword.get = function (id, callback) {
+<<<<<<< HEAD
     graph_db.getNodeById(id, function (err, node) {     
+=======
+    graph_db.getNodeById(id, function (err, node) {    	
+>>>>>>> e498ecafd433a6db756019837cc5fca3c58feaf9
         if (err) return callback(err);
         callback(null, new Keyword(node));
     });
@@ -126,7 +134,11 @@ Keyword.getAll = function (term, callback) {
         'RETURN keyword',
     ].join('\n');
 
+<<<<<<< HEAD
     graph_db.query(query, null, function (err, results) {       
+=======
+    graph_db.query(query, null, function (err, results) {    	
+>>>>>>> e498ecafd433a6db756019837cc5fca3c58feaf9
         if (err) return callback(err);
         var keywords = results.map(function (result) {
             return new Keyword(result['keyword']);
@@ -141,12 +153,21 @@ Keyword.getPairs = function (callback) {
         'RETURN n, m',
     ].join('\n');
 
+<<<<<<< HEAD
     graph_db.query(query, null, function (err, results) {       
         console.log(results);
         if (err) return callback(err);
         var keywords = results.map(function (result) {
             var n = new Keyword(result['n']);
             var m = new Keyword(result['m'])
+=======
+    graph_db.query(query, null, function (err, results) {    	
+    	console.log(results);
+        if (err) return callback(err);
+        var keywords = results.map(function (result) {
+        	var n = new Keyword(result['n']);
+        	var m = new Keyword(result['m'])
+>>>>>>> e498ecafd433a6db756019837cc5fca3c58feaf9
             return [n.keyword, m.keyword];
         });
         callback(null, keywords);
