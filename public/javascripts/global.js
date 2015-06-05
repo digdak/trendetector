@@ -16,7 +16,7 @@ $(document).ready(function () {
     }
 
     // Populate the article table on initial page load
-    populateTable(undefined, undefined);
+    populateTable(undefined, undefined, undefined);
 
     // select multiple community
     selectMultipleCommunity();    
@@ -50,7 +50,7 @@ function makePagenation(max_page) {
 }
 
 // Fill table with data
-function populateTable(community, page) {
+function populateTable(keyword, community, page) {
     // Empty content string
     var tableContent = '';
     var query = { };
@@ -58,8 +58,11 @@ function populateTable(community, page) {
     if (page === undefined || page === '') {
         page = 1;
     }
-    if(community !== "") {
+    if(community != undefined && community !== "") {
         query.community = community;
+    }
+    if(keyword != undefined && keyword !== "") {
+        query.keyword = keyword;
     }
     // jQuery AJAX call for JSON
     $.post('/article/list?page='+page, query, function (data) {
@@ -131,7 +134,7 @@ function refreshContentList(page_num) {
         return $(this).attr("value");
     }).get();
 
-    populateTable(community_list, page_num);
+    populateTable(undefined, community_list, page_num);
 
     // select multiple community
     // selectMultipleCommunity();
@@ -171,4 +174,9 @@ function get_keyword_list() {
             $("#keyword_list").append(result);       
         });
     });
+}
+
+function get_article_with_keyword(keyword) {
+    console.log("get_article_with_keyword = " + keyword);
+    populateTable(keyword, undefined, undefined);  
 }
