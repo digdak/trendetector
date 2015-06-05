@@ -98,16 +98,17 @@ Keyword.get = function (id, callback) {
     });
 };
 
-Keyword.getByKeyword = function (keyword, term, callback) {
-    console.log("in getByKeyword keyword = " + keyword + " term = " + term);
+Keyword.getByKeyword = function (keyword, term, batch_time, callback) {
+    console.log("in getByKeyword keyword = " + keyword + " term = " + term + " batch_time = "+ batch_time);
     var query = [
-        'MATCH (keyword:Keyword {id:{keyword}, term:{term}})',
+        'MATCH (keyword:Keyword {id:{keyword}, term:{term}, batch_time:{batch_time}})',
         'RETURN keyword',
     ].join('\n');
 
     var params = {
         'keyword': keyword,
-        'term': term
+        'term': term,
+        'batch_time': batch_time
     };
 
     graph_db.query(query, params, function (err, results) {     
@@ -121,9 +122,9 @@ Keyword.getByKeyword = function (keyword, term, callback) {
     });
 };
 
-Keyword.getAll = function (term, callback) {
+Keyword.getAll = function (term, batch_time, callback) {
     var query = [
-        'MATCH (keyword:Keyword {term:"'+term+'"})',
+        'MATCH (keyword:Keyword {term:"'+term+'", batch_time:'+batch_time+'})',
         'RETURN keyword',
     ].join('\n');
 
@@ -136,14 +137,20 @@ Keyword.getAll = function (term, callback) {
     });
 };
 
-Keyword.getPairs = function (callback) {
+Keyword.getPairs = function (term, batch_time, callback) {
     var query = [
-        'MATCH (n:Keyword)-[r]->(m:Keyword)',
+        'MATCH (n:Keyword {term:"'+term+'", batch_time:'+batch_time+'})-[r]->(m:Keyword {term:"'+term+'", batch_time:'+batch_time+'})',
         'RETURN n, m',
     ].join('\n');
 
+    var params = {
+        'term': term,
+        'batch_time': batch_time
+    };
+    console.log(query);
+
     graph_db.query(query, null, function (err, results) {
-        console.log(results);
+        // console.log(results);
         if (err) return callback(err);
         var keywords = results.map(function (result) {
             var n = new Keyword(result['n']);
@@ -202,7 +209,7 @@ Keyword.create_nodes = function (next) {
                 item.ntfidf2 = item.value.ntfidf2;
                 delete item.value;
                 item.term = term;
-                item.created_time = batch_time;        
+                item.batch_time = batch_time.getTime();
          
                 Keyword.create(item, function(err, keyword_result) {
                     if (err) {
@@ -234,6 +241,7 @@ Keyword.create_graph = function (next) {
                 console.log("out 0 pass");
                 return;
             }
+            var out_article_ids = keywords_with_article[keyword_out.id].map(function(obj) {return obj._id + ""});
 
             keyword_list.forEach(function (keyword_in, j) {                
                 if (j==i) {
@@ -243,7 +251,7 @@ Keyword.create_graph = function (next) {
                     // check intersection with articles
                     // if condition is satisfied, make edge                                        
                     var article_size_with_in = keywords_with_article[keyword_in.id].length;
-                    console.log("inner iterator  = " + j + " keyword = " + keyword_in.id  + " size = " + article_size_with_in); 
+                    console.log("out iterator  = " + i + " keyword = " + keyword_out.id +" inner iterator  = " + j + " keyword = " + keyword_in.id  + " size = " + article_size_with_in); 
 
                     if (article_size_with_in == 0) {
                         console.log("inner 0 pass");
@@ -255,13 +263,13 @@ Keyword.create_graph = function (next) {
                     //     console.log(keywords_with_article[keyword_in.id].map(function(obj) {return obj._id}));
                     // }
 
-                    var intersection_size = keywords_with_article[keyword_out.id].map(function(obj) {return obj._id + ""}).filter(function(n) {
+                    var intersection = out_article_ids.filter(function(n) {
                         return (keywords_with_article[keyword_in.id].map(function(obj) {return obj._id + ""}).indexOf(n) != -1)
                     });
 
-                    console.log("intersection_size = " + intersection_size + " length = " + intersection_size.length);
+                    console.log("intersection_size = " + intersection.length);
 
-                    intersection_size = intersection_size.length;
+                    var intersection_size = intersection.length;
                     var a = (intersection_size/article_size_with_out).toPrecision(8);
                     var b = (intersection_size/article_size_with_in).toPrecision(8);
                     console.log("calculate a b : " + a + "  " + b);
@@ -270,8 +278,9 @@ Keyword.create_graph = function (next) {
 
                     if (cohesion_value > 0.3) {
                     // if (intersection_size > 0) {
-                        Keyword.getByKeyword(keyword_out.id, term, function (m){
-                            Keyword.getByKeyword(keyword_in.id, term, function (n) {
+                        Keyword.getByKeyword(keyword_out.id, term, keyword_out.batch_time, function (m){
+                            Keyword.getByKeyword(keyword_in.id, term, keyword_in.batch_time, function (n) {
+                                console.log("make follow = " + keyword_out.id + "  " + keyword_in.id);
                                 m.follow(n, function(err) {                                    
                                     // flagFollowEnd = true;
                                     if (err) {

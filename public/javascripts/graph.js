@@ -98,22 +98,22 @@ function highlightConnected(s) {
 function force_power(sigInst) {
 	config = {};
 	config.barnesHutOptimize = false;
-	config.strongGravityMode = true;	
+	config.strongGravityMode = true;
+	config.edgeWeightInfluence = 1;	
 	sigInst.startForceAtlas2(config);
- 
-	var isRunning = true;
-	document.getElementById('stop-layout').addEventListener('click',function(){
-	    if(isRunning){
-        	isRunning = false;
-      		sigInst.stopForceAtlas2();
-	      	document.getElementById('stop-layout').childNodes[0].nodeValue = 'Start Layout';
-	    } else {
-	      	isRunning = true;
-	      	sigInst.startForceAtlas2();
-	      	document.getElementById('stop-layout').childNodes[0].nodeValue = 'Stop Layout';
-	    }
-    }, true);
 }	
+
+sigma.classes.graph.addMethod('neighbors', function(nodeId) {		
+    var k,
+        neighbors = {},
+        index = this.allNeighborsIndex[nodeId] || {};
+
+    for (k in index)
+      neighbors[k] = this.nodesIndex[k];
+
+    return neighbors;
+});
+
 
 function createGraph(nodes, relations) {
 	var i,
@@ -134,7 +134,17 @@ function createGraph(nodes, relations) {
 	    size: 1,
 	    color: '#666'
 	  });	
+
+	var keywords = nodes.map(function(item) {
+		return item._node._data.data.id;
+	});
+	console.log(keywords);
 	for (i = 0; i < E; i++)
+	  // if (keywords.indexOf(relations[i][0]) == -1 || keywords.indexOf(relations[i][1]) == -1) {
+	  // 	console.log("duplicated " + relations[i][0] +  "   " + relations[i][1]);
+	  // 	continue;
+	  // }
+
 	  g.edges.push({
 	    id: 'e' + i,
 	    source: relations[i][0],
@@ -143,17 +153,6 @@ function createGraph(nodes, relations) {
 	    color: '#ccc'
 	  });	
 	// Instantiate sigma:
-
-	sigma.classes.graph.addMethod('neighbors', function(nodeId) {		
-	    var k,
-	        neighbors = {},
-	        index = this.allNeighborsIndex[nodeId] || {};
-
-	    for (k in index)
-	      neighbors[k] = this.nodesIndex[k];
-
-	    return neighbors;
-  	});
 
 	s = new sigma({
 	  graph: g,
@@ -164,13 +163,13 @@ function createGraph(nodes, relations) {
 	console.log("create graph called");
 }
 
-function getGraph() {
-	$.getJSON('/graph/nodes_with_rel/keyword_24_72', function (data) {		
+function getGraph(term, batch_time) {
+	console.log("getGraph term =" + term + "  batch_time = " + batch_time);
+	$.getJSON('/graph/nodes_with_rel/'+term+'/'+batch_time, function (data) {		
 		console.log(data);
 		nodes = data.keywords;
 		relations = data.relations;
+		$("#graph-container").html("");
 		createGraph(nodes, relations);
 	});
 }
-
-getGraph();
