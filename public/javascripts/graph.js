@@ -139,7 +139,7 @@ function createGraph(nodes, relations) {
 	    id: 'e' + i,
 	    source: relations[i][0],
 	    target: relations[i][1],
-	    size: Math.random(),
+	    size: 1,
 	    color: '#ccc'
 	  });	
 	// Instantiate sigma:
