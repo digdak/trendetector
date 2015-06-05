@@ -105,7 +105,9 @@ router.get('/view', function (req, res, next) {
 router.post('/article/list', function (req, res, next) {
     var page = req.query.page;
     var keyword = req.body.keyword;
+    var term = req.body.term;
     var community = req.body["community[]"];
+    var batch_time = req.body.batch_time;
 
     if (page === undefined || page === '') {
         page = 1;
@@ -119,6 +121,28 @@ router.post('/article/list', function (req, res, next) {
 
     if (keyword !== undefined) {
         where["keywords.keyword"] = keyword;
+    }
+
+    if (keyword !== undefined && term !== undefined && batch_time !== undefined) {        
+        batch_time = Number(batch_time);
+        if (isNaN(batch_time)) {
+            return next(new Error(""));
+        }
+
+        var split_result = term.split("_");
+        var m = Number(split_result[1]);
+        var n = Number(split_result[2]);
+
+        var maxdate = new Date(batch_time);
+        var mindate = new Date(batch_time);
+
+        maxdate.setHours(maxdate.getHours()-m);
+        mindate.setHours(mindate.getHours()-n);        
+
+        where.date = {
+            "$gt": mindate,
+            "$lt": maxdate
+        };
     }
 
     if (community !== undefined && community.length > 0) {
