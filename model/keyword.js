@@ -94,7 +94,7 @@ exports.get_keywords = function (next) {
                         throw err;
                     }
                     
-                    next(doc.batch_time, keyword_list);
+                    next(db, term, doc.batch_time, keyword_list);
             });
         });
     }
