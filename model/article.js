@@ -24,7 +24,7 @@ exports.get_articlelist = function (next) {
             where = {};
         }
 
-        db.collection('article').find(where, {'contents': false}).sort({ date: -1 }).skip(page).limit(limit).toArray(
+        db.collection('article').find(where, {'contents': false, 'keywords': false}).sort({ date: -1 }).skip(page).limit(limit).toArray(
             function (err, article_list) {
                 if (err) {
                     throw err;

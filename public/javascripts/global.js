@@ -16,7 +16,7 @@ $(document).ready(function () {
     }
 
     // Populate the article table on initial page load
-    populateTable(undefined, undefined);
+    populateTable(undefined, undefined, undefined);
 
     // select multiple community
     selectMultipleCommunity();    
@@ -50,7 +50,7 @@ function makePagenation(max_page) {
 }
 
 // Fill table with data
-function populateTable(community, page) {
+function populateTable(keyword, community, page) {
     // Empty content string
     var tableContent = '';
     var query = { };
@@ -58,8 +58,11 @@ function populateTable(community, page) {
     if (page === undefined || page === '') {
         page = 1;
     }
-    if(community !== "") {
+    if(community != undefined && community !== "") {
         query.community = community;
+    }
+    if(keyword != undefined && keyword !== "") {
+        query.keyword = keyword;
     }
     // jQuery AJAX call for JSON
     $.post('/article/list?page='+page, query, function (data) {
@@ -131,7 +134,7 @@ function refreshContentList(page_num) {
         return $(this).attr("value");
     }).get();
 
-    populateTable(community_list, page_num);
+    populateTable(undefined, community_list, page_num);
 
     // select multiple community
     // selectMultipleCommunity();
@@ -150,17 +153,20 @@ function selectPage() {
 
 function get_keyword_list() {
     console.log("called get_keyword_list");
-    var term_list = ["keyword_0_24", "keyword_24_72"]
+    var term_list = ["keyword_0_3", "keyword_0_6", "keyword_0_12", "keyword_0_24", "keyword_24_72", "keyword_72_168"];
     $("#keyword_list").html("");       
 
     term_list.forEach(function(term) {
         $.getJSON('/keyword/list?term=' + term, function (data) {
-            console.log("loop = " + term);
-            // console.log("result = " + data.keywords);
+            var batch_time = new Date(data.batch_time);
+            console.log("getGraph TIME = " + batch_time.getTime());
+            if (term == term_list[0]) {
+                getGraph(term, batch_time.getTime());
+            }
             var result = "";
             var title_tokens = term.split("_");
             var title = title_tokens[title_tokens.length-1];
-            result += "<div class='col-xs-6'><h4>최근 "+title+"시간 키워드</h4><ol>";
+            result += "<div class='col-xs-6'><h4 onclick=getGraph('"+term+"',"+batch_time.getTime()+");>최근 "+title+"시간 키워드</h4><ol>";
             $.each(data.keywords, function () {
                 result+="<li>";
                 result+=this._id;
@@ -171,4 +177,9 @@ function get_keyword_list() {
             $("#keyword_list").append(result);       
         });
     });
+}
+
+function get_article_with_keyword(keyword) {
+    console.log("get_article_with_keyword = " + keyword);
+    populateTable(keyword, undefined, undefined);  
 }

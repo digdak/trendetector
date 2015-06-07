@@ -182,8 +182,9 @@ ul {
 }*/
 
 #graph-container {
-    max-width: 400px;
-    height: 400px;
+    min-width: 400px;
+    /*height: 400px;*/
+    min-height: 400px;
     margin: auto;
 }
 
