@@ -165,8 +165,8 @@ Keyword.getPairs = function (term, batch_time, callback) {
 Keyword.create = function (data, callback) {
     // construct a new instance of our class with the data, so it can
     // validate and extend it, etc., if we choose to do that in the future:    
-    var node = graph_db.createNode(data);
-    var keyword = new Keyword(node._data.data);        
+    // var node = graph_db.createNode(data);
+    // var keyword = new Keyword(node._data.data);        
     // but we do the actual persisting with a Cypher query, so we can also
     // apply a label at the same time. (the save() method doesn't support
     // that, since it uses Neo4j's REST API, which doesn't support that.)
