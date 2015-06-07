@@ -90,11 +90,10 @@ exports.get_keywords = function (next) {
                 .find({rank: {$exists: true}})
                 .sort({rank: 1}).limit(20).toArray(function (err, keyword_list) {
                     if (err) {
-                        console.log(err);
                         throw err;
                     }
                     
-                    next(doc.batch_time, keyword_list);
+                    next(db, term, doc.batch_time, keyword_list);
             });
         });
     }

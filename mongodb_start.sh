@@ -1,1 +1,1 @@
-mongod --dbpath data
+mongod --dbpath data --fork --logpath /dev/null
