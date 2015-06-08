@@ -28,8 +28,8 @@ Object.defineProperty(Keyword.prototype, 'rank', {
 });
 
 
-Keyword.prototype.follow = function (other, callback) {
-    this._node.createRelationshipTo(other._node, 'follows', {}, function (err, rel) {
+Keyword.prototype.follow = function (other, data, callback) {
+    this._node.createRelationshipTo(other._node, 'follows', data, function (err, rel) {
         callback(err);
     });
 };
@@ -281,7 +281,7 @@ Keyword.create_graph = function (next) {
                         Keyword.getByKeyword(keyword_out.id, term, keyword_out.batch_time, function (m){
                             Keyword.getByKeyword(keyword_in.id, term, keyword_in.batch_time, function (n) {
                                 console.log("make follow = " + keyword_out.id + "  " + keyword_in.id);
-                                m.follow(n, function(err) {                                    
+                                m.follow(n, {'cohesion_value': cohesion_value}, function(err) {                                    
                                     // flagFollowEnd = true;
                                     if (err) {
                                         console.log("error in follow callback func : " + err);
