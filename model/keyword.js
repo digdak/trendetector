@@ -95,17 +95,22 @@ exports.get_intersection_count_by_keywords = function (next) {
             ]
         };
 
-        db.collection('article').count(where, function (err, cnt) {
-            if (err) {
-                throw err;
-            }
+        get_article_count_by_keyword(function (cnt1) {
+            get_article_count_by_keyword(function (cnt2) {
+                db.collection('article').count(where, function (err, cnt) {
+                    if (err) {
+                        throw err;
+                    }
 
-            next(cnt);
-        });
+                    next({ "keyword1_cnt": cnt1, "keyword2_cnt": cnt2, "intersection_cnt": cnt });
+                });
+            })
+        })
+
     }
 }
 
-exports.get_article_count_by_keyword = function (next) {
+function get_article_count_by_keyword(next) {
     return function (db, keyword, term, batch_time) {
 
         if(keyword === undefined) {
