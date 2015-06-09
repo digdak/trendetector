@@ -237,10 +237,10 @@ Keyword.create_graph = function (next) {
                     // console.log(i + " " + j);
                     model_keyword.get_intersection_count_by_keywords(function(result) {                        
                         // console.log(i + " : " + keyword_out.id + ",  " + result.keyword1_cnt + " out " + j + " : " + keyword_in.id + ",  " + result.keyword2_cnt);
-                        if (result.intersection_cnt == 0 || result.keyword1_cnt == 0 || result.keyword2_cnt == 0)
+                        if (result.intersection_cnt == 0 || keyword_out.cnt == 0 || keyword_in.cnt == 0)
                             return;
 
-                        var cohesion_value = (result.intersection_cnt/Math.min(result.keyword1_cnt, result.keyword2_cnt)).toPrecision(8);
+                        var cohesion_value = (result.intersection_cnt/Math.min(keyword_out.cnt, keyword_in.cnt)).toPrecision(8);
                         // console.log("intersection_cnt : " + result.intersection_cnt + "   cohesion_value : " + cohesion_value);
 
                         if (cohesion_value > 0.3) {
