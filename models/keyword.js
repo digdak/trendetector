@@ -117,7 +117,6 @@ Keyword.getByKeyword = function (keyword, term, batch_time, callback) {
             return callback(err);
         }           
         var keyword = new Keyword(results[0]['keyword']);
-        // console.log("in getByKeyword get : " + keyword);
         callback(keyword);
     });
 };
@@ -147,10 +146,8 @@ Keyword.getPairs = function (term, batch_time, callback) {
         'term': term,
         'batch_time': batch_time
     };
-    // console.log(query);
 
-    graph_db.query(query, null, function (err, results) {
-        // console.log(results);
+    graph_db.query(query, null, function (err, results) {        
         if (err) return callback(err);
         var keywords = results.map(function (result) {
             var n = new Keyword(result['n']);
@@ -181,8 +178,6 @@ Keyword.create = function (data, callback) {
 
     graph_db.query(query, params, function (err, results) {
         if (err) {
-            // console.log("error in create node db query : " + err);
-            // console.log(params);
             return callback(err);
         }
         var keyword = new Keyword(results[0]['keyword']);
@@ -195,7 +190,7 @@ Keyword.create_nodes = function (next) {
         // console.log("term = " + term + " batch_time = " + batch_time +  " keywords = " + keyword_list);
         var keywords_with_article = {};     // {'keyword': [article_id,], }
         var keyword_list_length = keyword_list.length;
-        // console.log("length = " + keyword_list_length);
+
         keyword_list.forEach(function (item, i) {                            
             model_keyword.get_article_ids_by_keyword(function(arr) {                                
                 
@@ -218,9 +213,8 @@ Keyword.create_nodes = function (next) {
                     }
 
                     keywords_with_article[item.id] = arr;
-                    // console.log("i = "+ i +"  length = " + Object.keys(keywords_with_article).length + " arr = "  + arr);  
-                    if (keyword_list_length == Object.keys(keywords_with_article).length) {                                                
-                        // console.log("gogo create graph");
+
+                    if (keyword_list_length == Object.keys(keywords_with_article).length) {
                         next(term, keyword_list, keywords_with_article);
                     }
                 });  
@@ -243,9 +237,9 @@ Keyword.create_graph = function (next) {
             }
             var out_article_ids = keywords_with_article[keyword_out.id].map(function(obj) {return obj._id + ""});
 
-            keyword_list.forEach(function (keyword_in, j) {                
-                if (j==i) {
-                    // console.log("same pass");
+            keyword_list.forEach(function (keyword_in, j) {
+                if (j<=i) {
+                    // console.log("same or less pass");
                     return;
                 } else {
                     // check intersection with articles
@@ -257,11 +251,6 @@ Keyword.create_graph = function (next) {
                         // console.log("inner 0 pass");
                         return;
                     }
-
-                    // if (i == 2 && j == 3) {    
-                    //     console.log(keywords_with_article[keyword_out.id].map(function(obj) {return obj._id}));
-                    //     console.log(keywords_with_article[keyword_in.id].map(function(obj) {return obj._id}));
-                    // }
 
                     var intersection = out_article_ids.filter(function(n) {
                         return (keywords_with_article[keyword_in.id].map(function(obj) {return obj._id + ""}).indexOf(n) != -1)
@@ -277,38 +266,23 @@ Keyword.create_graph = function (next) {
                     var cohesion_value = (intersection_size/Math.min(article_size_with_out, article_size_with_in)).toPrecision(8);
 
                     if (cohesion_value > 0.3) {
-                    // if (intersection_size > 0) {
                         Keyword.getByKeyword(keyword_out.id, term, keyword_out.batch_time, function (m){
                             Keyword.getByKeyword(keyword_in.id, term, keyword_in.batch_time, function (n) {
                                 // console.log("make follow = " + keyword_out.id + "  " + keyword_in.id);
-                                m.follow(n, {'cohesion_value': cohesion_value}, function(err) {                                    
-                                    // flagFollowEnd = true;
+                                m.follow(n, {'cohesion_value': cohesion_value}, function(err) {
                                     if (err) {
                                         // console.log("error in follow callback func : " + err);
                                         return next(err);
-                                    } 
-                                    // console.log("create keyword edge : " + m.id + "  " + n.id);
-
+                                    }
                                 });
                             
                             });
                             
                         });
                     }
-
-                    if (i == keyword_list.length - 1 && j == keyword_list.length - 1) {
-                        // console.log("set time out for end at i = " + i + " j = " + j);
-                        return next(term);
-                        setTimeout(function() {
-                            // console.log("gogo end create graph!!!");
-                            return next(term);
-                        }, 3000);
-                    }
-                    
                 }
-            
             });
         });
-        
+        return next(term);
     }
 }

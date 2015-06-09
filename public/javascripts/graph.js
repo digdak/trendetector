@@ -101,6 +101,11 @@ function force_power(sigInst) {
 	config.strongGravityMode = true;
 	config.edgeWeightInfluence = 1;	
 	sigInst.startForceAtlas2(config);
+
+	// stupid stupid stupid
+	window.setTimeout(function() {
+    	sigInst.stopForceAtlas2();
+  	}, 10000);
 }	
 
 sigma.classes.graph.addMethod('neighbors', function(nodeId) {		
