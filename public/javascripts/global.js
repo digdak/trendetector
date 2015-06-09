@@ -16,7 +16,7 @@ $(document).ready(function () {
     }
 
     // Populate the article table on initial page load
-    populateTable(undefined, undefined, undefined);
+    populateTable();
 
     // select multiple community
     selectMultipleCommunity();    
@@ -50,7 +50,7 @@ function makePagenation(max_page) {
 }
 
 // Fill table with data
-function populateTable(keyword, community, page) {
+function populateTable() {
     // Empty content string
     var tableContent = '';
     var query = { };
@@ -77,7 +77,7 @@ function populateTable(keyword, community, page) {
         // For each item in our JSON, add a table row and cells to the content string
         $.each(data.datas, function () {
             tableContent += '<tr>';
-            tableContent += '<td>' + this.community + '</td>';
+            tableContent += '<td class="community '+this.community+'">' + this.community + '</td>';
             tableContent += '<td class="subject"><a href="' +
                 '/view?page=' + page +
                 '&article_id=' + this._id + '">' + this.subject + '</a>';
@@ -126,22 +126,14 @@ function selectMultipleCommunity() {
         $(this).toggleClass("selected");
         $(this).removeClass("unselected");
         $('.site_select ul li:not(.selected)').addClass("unselected")
-        refreshContentList(1);        
+        page = 1;
+        community = $('.site_select ul li.selected').map(function() {
+            return $(this).attr("value");
+        }).get();
+        keyword = undefined;        
+        populateTable();
     });
 };
-
-function refreshContentList(page_num) {
-    // Populate the article table on initial page load
-    var community_list = $('.site_select ul li.selected').map(function() {
-        return $(this).attr("value");
-    }).get();
-
-    populateTable(undefined, community_list, page_num);
-
-    // select multiple community
-    // selectMultipleCommunity();
-};
-
 
 function selectPage() {
     $('#pagination a').on("click", function() {
@@ -149,7 +141,7 @@ function selectPage() {
         page = page_num;
         $(this).addClass("selected")
         $('#pagination a:not(.selected)').removeClass("selected");
-        refreshContentList(page_num);
+        populateTable();
     });
 }
 
@@ -168,7 +160,7 @@ function get_keyword_list() {
             var result = "";
             var title_tokens = term.split("_");
             var title = title_tokens[title_tokens.length-1];
-            result += "<div class='col-xs-6'><h4 onclick=getGraph('"+term+"',"+batch_time.getTime()+");>최근 "+title+"시간 키워드</h4><ol>";
+            result += "<div class='col-xs-6 keyword_list'><h4 class='btn btn-info' onclick=getGraph('"+term+"',"+batch_time.getTime()+");>최근 "+title+"시간 키워드</h4><ol>";
             $.each(data.keywords, function () {
                 result+="<li>";
                 result+=this._id;
@@ -179,9 +171,4 @@ function get_keyword_list() {
             $("#keyword_list").append(result);       
         });
     });
-}
-
-function get_article_with_keyword(keyword) {
-    // console.log("get_article_with_keyword = " + keyword);
-    populateTable(keyword, undefined, undefined);  
 }
