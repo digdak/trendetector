@@ -56,7 +56,7 @@ exports.get_article_ids_by_keyword = function (next) {
     }
 }
 
-exports.get_article_ids_by_keywords = function (next) {
+exports.get_intersection_count_by_keywords = function (next) {
     return function (db, keyword1, keyword2, term, batch_time) {
 
         if(keyword1 === undefined) {
@@ -95,12 +95,47 @@ exports.get_article_ids_by_keywords = function (next) {
             ]
         };
 
-        db.collection('article').find(where, { _id: true, date: true }).toArray(function (err, article_list) {
+        db.collection('article').count(where, function (err, cnt) {
             if (err) {
                 throw err;
             }
 
-            next(article_list);
+            next(cnt);
+        });
+    }
+}
+
+exports.get_article_count_by_keyword = function (next) {
+    return function (db, keyword, term, batch_time) {
+
+        if(keyword === undefined) {
+            return next(undefined);
+        }
+
+        var split_result = term.split("_");
+        var m = Number(split_result[1]);
+        var n = Number(split_result[2]);
+        var where = {
+            "keywords.keyword": keyword
+        };
+
+        var maxdate = new Date(batch_time.getTime());
+        var mindate = new Date(batch_time.getTime());
+
+        maxdate.setHours(maxdate.getHours()-m);
+        mindate.setHours(mindate.getHours()-n);
+
+        where.date = {
+            "$gt": mindate,
+            "$lt": maxdate
+        };
+
+        db.collection('article').count(where, function (err, cnt) {
+            if (err) {
+                throw err;
+            }
+
+            next(cnt);
         });
     }
 }
