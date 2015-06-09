@@ -109,12 +109,14 @@ function showContents() {
         });
         $('#contentsUrl').html('<a href="' + data.url + '">' + data.url + '</a>');
         $('#contentsSubject').html(data.subject);
+        /*
         data.keywords.forEach(function (keyword) {
             if (keyword.keyword.length < 2 || keyword.keyword.length > 15) {
                 return;
             }
             $('#keywords').append(keyword.keyword + ' : ' + keyword.tf + '</br>');
         });
+        */
         $('#contentsBody').html(data.contents);
     });
 };
@@ -152,14 +154,14 @@ function selectPage() {
 }
 
 function get_keyword_list() {
-    console.log("called get_keyword_list");
+    // console.log("called get_keyword_list");
     var term_list = ["keyword_0_3", "keyword_0_6", "keyword_0_12", "keyword_0_24", "keyword_24_72", "keyword_72_168"];
     $("#keyword_list").html("");       
 
     term_list.forEach(function(term) {
         $.getJSON('/keyword/list?term=' + term, function (data) {
             var batch_time = new Date(data.batch_time);
-            console.log("getGraph TIME = " + batch_time.getTime());
+            // console.log("getGraph TIME = " + batch_time.getTime());
             if (term == term_list[0]) {
                 getGraph(term, batch_time.getTime());
             }
@@ -173,13 +175,13 @@ function get_keyword_list() {
                 result+="</li>";
             }); 
             result += "</ol></div>";
-            console.log(result);
+            // console.log(result);
             $("#keyword_list").append(result);       
         });
     });
 }
 
 function get_article_with_keyword(keyword) {
-    console.log("get_article_with_keyword = " + keyword);
+    // console.log("get_article_with_keyword = " + keyword);
     populateTable(keyword, undefined, undefined);  
 }

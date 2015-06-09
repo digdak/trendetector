@@ -138,7 +138,7 @@ function createGraph(nodes, relations) {
 	var keywords = nodes.map(function(item) {
 		return item._node._data.data.id;
 	});
-	console.log(keywords);
+	// console.log(keywords);
 	for (i = 0; i < E; i++)
 	  // if (keywords.indexOf(relations[i][0]) == -1 || keywords.indexOf(relations[i][1]) == -1) {
 	  // 	console.log("duplicated " + relations[i][0] +  "   " + relations[i][1]);
@@ -160,13 +160,13 @@ function createGraph(nodes, relations) {
 	});
 	highlightConnected(s);
 	force_power(s);
-	console.log("create graph called");
+	// console.log("create graph called");
 }
 
 function getGraph(term, batch_time) {
-	console.log("getGraph term =" + term + "  batch_time = " + batch_time);
-	$.getJSON('/graph/nodes_with_rel/'+term+'/'+batch_time, function (data) {		
-		console.log(data);
+	// console.log("getGraph term =" + term + "  batch_time = " + batch_time);
+	$.getJSON('/graph/nodes_with_rel/'+term+'/'+batch_time, function (data) {
+		// console.log(data);
 		nodes = data.keywords;
 		relations = data.relations;
 		$("#graph-container").html("");

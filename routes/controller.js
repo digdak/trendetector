@@ -23,12 +23,12 @@ router.get('/graph/nodes/:term/:batch_time', function (req, res, next) {
 router.get('/graph/nodes_with_rel/:term/:batch_time', function (req, res, next) {
     var term = req.params.term;
     var batch_time = req.params.batch_time;
-    console.log("routing /graph/nodes_with_rel/" + term +"/" + batch_time);
+    // console.log("routing /graph/nodes_with_rel/" + term +"/" + batch_time);
     // Check is there graph on time 
     // if not make graph,
     Keyword.getAll(term, batch_time, function (err, keywords) {        
         if (err) {
-            console.log(err);
+            // console.log(err);
             return next(err);
         }
         
@@ -36,12 +36,12 @@ router.get('/graph/nodes_with_rel/:term/:batch_time', function (req, res, next) 
             // get orgin graph from db
             Keyword.getPairs(term, batch_time, function (err, results) {        
 
-                console.log("get pair");
+                // console.log("get pair");
                 if (err) return next(err);
                 res.json({keywords:keywords,relations:results});            
             });
         } else {
-            console.log("create keyword graph");
+            // console.log("create keyword graph");
             res.redirect('/graph/create/'+term+"/"+batch_time);
         }
             
@@ -52,9 +52,9 @@ router.get('/graph/nodes_with_rel/:term/:batch_time', function (req, res, next) 
 router.get('/graph/create/:term/:batch_time', function(req, res, next) {    
     var term = req.params.term;
     var batch_time = req.params.batch_time;
-    console.log("routing /graph/create/" + term);
+    // console.log("routing /graph/create/" + term);
     model_keyword.get_keywords(Keyword.create_nodes(Keyword.create_graph(function(term) {
-        console.log("do redirect");
+        // console.log("do redirect");
         res.redirect('/graph/nodes_with_rel/'+term+'.json');
     })))(req.db, term); // end of get keywords
 });

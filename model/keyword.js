@@ -44,7 +44,56 @@ exports.get_article_ids_by_keyword = function (next) {
         where.date = {
             "$gt": mindate,
             "$lt": maxdate
-        };        
+        };
+
+        db.collection('article').find(where, { _id: true, date: true }).toArray(function (err, article_list) {
+            if (err) {
+                throw err;
+            }
+
+            next(article_list);
+        });
+    }
+}
+
+exports.get_article_ids_by_keywords = function (next) {
+    return function (db, keyword1, keyword2, term, batch_time) {
+
+        if(keyword1 === undefined) {
+            return next(undefined);
+        }
+
+        if(keyword2 === undefined) {
+            return next(undefined);
+        }
+
+        var split_result = term.split("_");
+        var m = Number(split_result[1]);
+        var n = Number(split_result[2]);
+
+
+        var maxdate = new Date(batch_time.getTime());
+        var mindate = new Date(batch_time.getTime());
+
+        maxdate.setHours(maxdate.getHours()-m);
+        mindate.setHours(mindate.getHours()-n);
+
+        var where = {
+            "$and": [
+                {
+                    "keywords.keyword": keyword1
+                },
+                {
+                    "keywords.keyword": keyword2
+                },
+                {
+                    "date": {
+                        "$gt": mindate,
+                        "$lt": maxdate
+                    }
+                }
+            ]
+        };
 
         db.collection('article').find(where, { _id: true, date: true }).toArray(function (err, article_list) {
             if (err) {

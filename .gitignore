@@ -21,3 +21,6 @@ public/images/
 
 # java class files
 crawler/classes/
+
+# graphdb
+graphdb/*
