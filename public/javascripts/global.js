@@ -145,12 +145,21 @@ function selectPage() {
     });
 }
 
+function click_keyword() {
+    $("li .keyword").on("click", function() {        
+        keyword = $(this).context.innerHTML; 
+        console.log(keyword);       
+        page = 1;
+        populateTable();
+    });
+}
+
 function get_keyword_list() {
     // console.log("called get_keyword_list");
     var term_list = ["keyword_0_3", "keyword_0_6", "keyword_0_12", "keyword_0_24", "keyword_24_72", "keyword_72_168"];
     $("#keyword_list").html("");       
 
-    term_list.forEach(function(term) {
+    term_list.forEach(function(term, i) {
         $.getJSON('/keyword/list?term=' + term, function (data) {
             var batch_time = new Date(data.batch_time);
             // console.log("getGraph TIME = " + batch_time.getTime());
@@ -162,13 +171,17 @@ function get_keyword_list() {
             var title = title_tokens[title_tokens.length-1];
             result += "<div class='col-xs-6 keyword_list'><h4 class='btn btn-info' onclick=getGraph('"+term+"',"+batch_time.getTime()+");>최근 "+title+"시간 키워드</h4><ol>";
             $.each(data.keywords, function () {
-                result+="<li>";
+                result+="<li><button class='keyword btn btn-link'>";
                 result+=this._id;
-                result+="</li>";
+                result+="</button></li>";
             }); 
             result += "</ol></div>";
             // console.log(result);
-            $("#keyword_list").append(result);       
+            $("#keyword_list").append(result);
+            if (i == term_list.length - 1)
+                click_keyword();
         });
     });
+
 }
+
