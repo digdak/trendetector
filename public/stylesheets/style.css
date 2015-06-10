@@ -211,3 +211,11 @@ ul {
     margin-top: 15px;
     background:#eeffee;
 }
+
+.notice {        
+    margin-top: 20px;
+}
+
+.notice small {
+    color: #FFFFFF;
+}
