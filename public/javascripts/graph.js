@@ -172,10 +172,10 @@ function createGraph(nodes, relations) {
 
 function getGraph(term, batch_time) {
 	var split_term = term.split("_");
-	$(".explain_graph small").html("최근 " + split_term[split_term.length - 1] + "시간 키워드 관계망");	
-	// console.log("getGraph term =" + term + "  batch_time = " + batch_time);
-	$.getJSON('/graph/nodes_with_rel/'+term+'/'+batch_time, function (data) {
-		// console.log(data);
+	$(".explain_graph small").html("그래프 한땀한담 그리는 중...");	
+	$.getJSON('/graph/nodes_with_rel/'+term+'/'+batch_time, function (data) {		
+		var split_term = term.split("_");
+		$(".explain_graph small").html("최근 " + split_term[split_term.length - 1] + "시간 키워드 관계망");	
 		nodes = data.keywords;
 		relations = data.relations;
 		$("#graph-container").html("");
