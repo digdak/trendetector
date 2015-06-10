@@ -22,39 +22,32 @@ router.get('/graph/nodes/:term/:batch_time', function (req, res, next) {
 
 router.get('/graph/nodes_with_rel/:term/:batch_time', function (req, res, next) {
     var term = req.params.term;
-    var batch_time = req.params.batch_time;
-    // console.log("routing /graph/nodes_with_rel/" + term +"/" + batch_time);
+    var batch_time = req.params.batch_time;    
     // Check is there graph on time 
-    // if not make graph,
-    Keyword.getAll(term, batch_time, function (err, keywords) {
-        if (err) {
+    // if not make graph,    
+    req.db.collection(term+"_relation").find().sort({batch_time:-1}).limit(1).toArray(function(err, arr) {
+        if (err) {   
             return next(err);
         }
+        batch_time = arr[0].batch_time.getTime();
+        Keyword.getAll(term, batch_time, function (err, keywords) {
+            if (err) {                
+                return next(err);
+            }
         
-        if (keywords.length != 0) {
-            // get orgin graph from db
-            Keyword.getPairs(term, batch_time, function (err, results) {
-                if (err) return next(err);
-                res.json({keywords:keywords,relations:results});            
-            });
-        } else {
-            // console.log("create keyword graph");
-            res.redirect('/graph/create/'+term+"/"+batch_time);
-        }
-            
-    });    
-});
-
-// make new graph
-router.get('/graph/create/:term/:batch_time', function(req, res, next) {    
-    var term = req.params.term;
-    var batch_time = req.params.batch_time;
-    // console.log("routing /graph/create/" + term);
-    model_keyword.get_keywords(Keyword.create_nodes(Keyword.create_graph(function(term) {
-        console.log("do redirect");
-        // res.redirect('/graph/nodes_with_rel/'+term+'.json');
-    })))(req.db, term); // end of get keywords
-    res.json();
+            if (keywords.length != 0) {
+                // get orgin graph from db
+                Keyword.getPairs(term, batch_time, function (err, results) {
+                    if (err) return next(err);
+                    res.json({keywords:keywords,relations:results});            
+                });
+            } else {                
+                Keyword.create_nodes(Keyword.create_graph(function() {
+                    res.redirect('/graph/nodes_with_rel/'+term+'/'+batch_time);
+                }))(term, batch_time, arr[0].keywords, arr[0].relations);
+            }
+        });
+    });  
 });
 
 router.get('/graph/relations', function (req, res, next) {

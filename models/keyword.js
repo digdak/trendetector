@@ -109,11 +109,10 @@ Keyword.getByKeyword = function (keyword, term, batch_time, callback) {
         'keyword': keyword,
         'term': term,
         'batch_time': batch_time
-    };
+    };    
 
     graph_db.query(query, params, function (err, results) {     
-        if (err) {
-            // console.log("in getByKeyword err : " + err);
+        if (err) {            
             return callback(err);
         }           
         var keyword = new Keyword(results[0]['keyword']);
@@ -123,7 +122,7 @@ Keyword.getByKeyword = function (keyword, term, batch_time, callback) {
 
 Keyword.getAll = function (term, batch_time, callback) {
     var query = [
-        'MATCH (keyword:Keyword {term:"'+term+'", batch_time:'+batch_time+'})',
+        'MATCH (keyword:Keyword {term:"'+term+'", batch_time:'+batch_time+', complete:false})',
         'RETURN keyword',
     ].join('\n');
 
@@ -142,11 +141,6 @@ Keyword.getPairs = function (term, batch_time, callback) {
         'RETURN n, m',
     ].join('\n');
 
-    var params = {
-        'term': term,
-        'batch_time': batch_time
-    };
-
     graph_db.query(query, null, function (err, results) {        
         if (err) return callback(err);
         var keywords = results.map(function (result) {
@@ -157,6 +151,17 @@ Keyword.getPairs = function (term, batch_time, callback) {
         callback(null, keywords);
     });
 };
+
+Keyword.updateComplete = function(term, batch_time) {
+    var query = [
+        'MATCH (n:Keyword {term:"'+term+'", batch_time:'+batch_time+', complete:false})',
+        'SET n.complete = true',
+    ].join('\n');
+
+    graph_db.query(query, null, function (err) {
+        if (err) return callback(err);
+    });
+}
 
 // creates the keyword and persists (saves) it to the db, incl. indexing it:
 Keyword.create = function (data, callback) {
@@ -186,83 +191,64 @@ Keyword.create = function (data, callback) {
 };
 
 Keyword.create_nodes = function (next) {
-    return function(db, term, batch_time, keyword_list) {                
-        // console.log("term = " + term + " batch_time = " + batch_time +  " keywords = " + keyword_list);
-        // var keywords_with_article = {};     // {'keyword': [article_id,], }
+    return function(term, batch_time, keyword_list, relations) {                                    
         var keyword_list_length = keyword_list.length;
-
-        keyword_list.forEach(function (item, i) {                            
-            // model_keyword.get_article_ids_by_keyword(function(arr) {                                
-                
-                // make node                                                                
-                item.id = item._id;
-                delete item._id;
-                item.ntf = item.value.ntf;
-                item.cnt = item.value.cnt;
-                item.ntfidf = item.value.ntfidf;
-                item.ntfidf1 = item.value.ntfidf1;
-                item.ntfidf2 = item.value.ntfidf2;
-                delete item.value;
-                item.term = term;
-                item.batch_time = batch_time.getTime();
-         
-                Keyword.create(item, function(err, keyword_result) {
-                    if (err) {
-                        // console.log(err);
-                        return;
-                    }
-
-                    // keywords_with_article[item.id] = arr;
-
-                    if (keyword_list_length - 1 == i) {
-                        next(db, term, keyword_list, batch_time);
-                    }
-                });  
+        var counter = 0;
+        keyword_list.forEach(function (item, i) {                                        
+            // make node                                                                
+            item.id = item._id;
+            delete item._id;
+            item.ntf = item.value.ntf;
+            item.cnt = item.value.cnt;
+            item.ntfidf = item.value.ntfidf;
+            item.ntfidf1 = item.value.ntfidf1;
+            item.ntfidf2 = item.value.ntfidf2;
+            delete item.value;
+            item.term = term;
+            item.batch_time = batch_time;
+            item.complete = false;
      
-            // })(db, item._id, term, batch_time);  // HOUR FROM NOW            
+            Keyword.create(item, function(err, keyword_result) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }                
+
+                if (keyword_list_length == ++counter) {                    
+                    next(term, batch_time, relations);
+                }
+            });  
+        
         });
         
     }
 }
 
 Keyword.create_graph = function (next) {    
-    return function(db, term, keyword_list, batch_time) {           
-        // console.log(keyword_list);
-        keyword_list.forEach(function (keyword_out, i) {                                                                
-            keyword_list.forEach(function (keyword_in, j) {
-                if (j<=i) {
-                    // console.log("same or less pass");
-                    return;
-                } else {
-                    // console.log(i + " " + j);
-                    model_keyword.get_intersection_count_by_keywords(function(result) {                        
-                        // console.log(i + " : " + keyword_out.id + ",  " + result.keyword1_cnt + " out " + j + " : " + keyword_in.id + ",  " + result.keyword2_cnt);
-                        if (result.intersection_cnt == 0 || keyword_out.cnt == 0 || keyword_in.cnt == 0)
-                            return;
+    return function(term, batch_time, relations) {        
+        relations.forEach(function (rel, i) {                                                                                                    
+            if (rel.intersection == 0 || rel.keyword1_cnt == 0 || rel.keyword2_cnt == 0)
+                return;
 
-                        var cohesion_value = (result.intersection_cnt/Math.min(keyword_out.cnt, keyword_in.cnt)).toPrecision(8);
-                        // console.log("intersection_cnt : " + result.intersection_cnt + "   cohesion_value : " + cohesion_value);
+            var cohesion_value = (rel.intersection/Math.min(rel.keyword1_cnt, rel.keyword2_cnt)).toPrecision(8);            
 
-                        if (cohesion_value > 0.3) {
-                            Keyword.getByKeyword(keyword_out.id, term, keyword_out.batch_time, function (m){
-                                Keyword.getByKeyword(keyword_in.id, term, keyword_in.batch_time, function (n) {
-                                    console.log("make follow = " + keyword_out.id + "  " + keyword_in.id);
-                                    m.follow(n, {'cohesion_value': cohesion_value}, function(err) {
-                                        if (err) {
-                                            // console.log("error in follow callback func : " + err);
-                                            return next(err);
-                                        }
-                                    });
-                                
-                                });
-                                
-                            });
-                        }
-                    })(db, keyword_out.id, keyword_in.id, term, batch_time);
+            if (cohesion_value > 0.3) {
+                Keyword.getByKeyword(rel.keyword1, term, batch_time, function (m){
+                    Keyword.getByKeyword(rel.keyword2, term, batch_time, function (n) {
+                        // console.log("make follow = " + rel.keyword1 + "  " + rel.keyword2);
+                        m.follow(n, {'cohesion_value': cohesion_value}, function(err) {
+                            if (err) {                                
+                                return next(err);
+                            }
+                        });
                     
-                }
-            });
+                    });
+                    
+                });
+            }
+
+            if (i == relations.length -1)
+                return next();
         });
-        return next(term);
     }
 }
